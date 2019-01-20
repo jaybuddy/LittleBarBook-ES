@@ -5,7 +5,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const User = require('../models/users');
 const jwt = require('jsonwebtoken');
-const connUri = process.env.MONGO_LOCAL_CONN_URL;
+const connUri = require('../lib/database');
 const { 
   NOT_ADDED,
   NOT_ADDED_DEV,
@@ -31,7 +31,7 @@ module.exports = {
       if (!err) {
         const { name, password, email } = req.body;
         const user = new User({ name, password, email }); // document = instance of a model
-        User.save()
+        user.save()
           .then(user => {
             if (!user) {
               result = formatApiResponse(500, {
@@ -39,7 +39,7 @@ module.exports = {
                 dev: NOT_ADDED_DEV
               }, {});
             } else {
-              result = formatApiResponse(status, null, drink)
+              result = formatApiResponse(status, null, user)
             }
             res.status(result.status).send(result);
           })

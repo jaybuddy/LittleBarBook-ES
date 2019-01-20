@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
-    "dev": "cross-env NODE_ENV=development nodemon index.js"
+    "dev": "cross-env NODE_ENV=development nodemon index.js",
+    "devtest": "cross-env NODE_ENV=devtest nodemon index.js"
   },
   "keywords": [],
   "author": "",

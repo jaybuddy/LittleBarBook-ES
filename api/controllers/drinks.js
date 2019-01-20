@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const Drink = require('../models/drinks');
 const { formatApiResponse } = require('../lib/formatters');
-const connUri = process.env.MONGO_LOCAL_CONN_URL;
+const connUri = require('../lib/database');
 const { 
   NOT_ADDED,
   NOT_ADDED_DEV,

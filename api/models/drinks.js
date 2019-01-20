@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const slug = require('mongoose-slug-updater');
-const { randomHash } = require('../utils');
+const { randomHash } = require('../lib/utils');
 mongoose.plugin(slug);
 
 // schema maps to a collection

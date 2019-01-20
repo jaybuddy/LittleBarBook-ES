@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
-const { randomHash } = require('../utils');
+const { randomHash } = require('../lib/utils');
 
 const environment = process.env.NODE_ENV;
 const stage = require('../config')[environment];

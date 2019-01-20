@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const Drink = require('../models/drinks');
-const { formatApiResponse } = require('../responseFormatters');
+const { formatApiResponse } = require('../lib/formatters');
 const connUri = process.env.MONGO_LOCAL_CONN_URL;
 const { 
   NOT_ADDED,
@@ -21,7 +21,7 @@ module.exports = {
   create: (req, res) => {
     mongoose.connect(connUri, { useNewUrlParser : true }, (err) => {
       let result = {};
-      let status = 201;
+      let status = 200;
       if (!err) {
         const { bbId, userId } = req.decoded;
         const { name, slug, description } = req.body;

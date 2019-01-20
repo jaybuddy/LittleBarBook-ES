@@ -2,7 +2,7 @@
 swagger: '2.0'
 
 info:
-  description: Little Bar Booke API
+  description: The backend API that handles database interaction for littlebarbook.com
   version: '1.0'
   title: Little Bar Booke API
 
@@ -269,6 +269,34 @@ paths:
                 type: object
               data:
                 type: null
+    patch:
+      tags:
+        - Users
+      summary: Updates the logged in user (Not yet finished, need fields)
+      security:
+        - bearer: []
+      responses:
+        200:
+          description: Successfully added drink
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              error:
+                type: null
+              data:
+                type: object
+        500:
+          description: Server error
+          schema:
+            properties:
+              status:
+                type: string
+              error:
+                type: object
+              data:
+                type: null
   /login:
     post:
       tags:
@@ -319,4 +347,42 @@ paths:
                 type: object
               data:
                 type: null
-
+  /logout:
+    get:
+      tags:
+        - Users
+      summary: Logs out a user
+      security:
+        - bearer: []
+      responses:
+        200:
+          description: Successfully logged out a user
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              error:
+                type: null
+              data:
+                type: object
+        401:
+          description: Authentication error
+          schema:
+            properties:
+              status:
+                type: string
+              error:
+                type: object
+              data:
+                type: null
+        500:
+          description: Server error
+          schema:
+            properties:
+              status:
+                type: string
+              error:
+                type: object
+              data:
+                type: null

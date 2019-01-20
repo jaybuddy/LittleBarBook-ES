@@ -1,8 +1,12 @@
 const environment = process.env.NODE_ENV; // development
-const stage = require('./config')[environment];
+const stage = require('../config')[environment];
 const jwt = require('jsonwebtoken');
 
 module.exports = {
+  /**
+   * validateToken
+   * Method validates an incoming JWT
+   */
   validateToken: (req, res, next) => {
     const authorizationHeader = req.headers.authorization;
     let result;
@@ -36,8 +40,14 @@ module.exports = {
     }
   },
 
+  /**
+   * randomHash
+   * Method generates a rondom has (currently used to generate a bbId)
+   * @param {Int} length Length of the hash
+   * @returns {String} A hash string.
+   */
   randomHash: (length) => {
-    const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    const possible = "abcdefghijklmnopqrstuvwxyz0123456789";
     let hash = "";
 
     for (let i = 0; i < length; i++)

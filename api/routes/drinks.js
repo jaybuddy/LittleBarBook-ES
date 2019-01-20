@@ -1,5 +1,5 @@
 const controller = require('../controllers/drinks');
-const validateToken = require('../utils').validateToken;
+const validateToken = require('../lib/utils').validateToken;
 
 module.exports = (router) => {
   router.route('/drinks')

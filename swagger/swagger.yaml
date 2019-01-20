@@ -1,0 +1,181 @@
+
+swagger: '2.0'
+
+info:
+  description: Little Bar Booke API
+  version: '1.0'
+  title: Little Bar Booke API
+
+basePath: /api/v1
+
+consumes:
+  - application/x-www-form-urlencoded
+
+produces:
+  - application/json
+
+tags:
+  - name: Users
+  - name: Drinks
+
+securityDefinitions:
+  bearer:
+    type: apiKey
+    name: Authorization
+    in: header
+
+paths:
+  /user:
+    post:
+      tags:
+        - Users
+      summary: Creates a new user 
+      security:
+        - bearer: []
+      parameters:
+        - name: name
+          in: formData
+          description: The username for the user.
+          required: true
+          type: string
+        - name: password
+          in: formData
+          description: The desired password for the user
+          required: true
+          type: string
+        - name: email
+          in: formData
+          description: Email address to associate with the user
+          required: true
+          type: string
+      responses:
+        200:
+          description: Successfully added user
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              error:
+                type: null
+              data:
+                type: object
+        500:
+          description: Server error
+          schema:
+            properties:
+              status:
+                type: string
+              error:
+                type: object
+              data:
+                type: null
+    get:
+      tags:
+        - Users
+      summary: Retrieves the logged in users info 
+      security:
+        - bearer: []
+      responses:
+        200:
+          description: Successfully added user
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              error:
+                type: null
+              data:
+                type: object
+        500:
+          description: Server error
+          schema:
+            properties:
+              status:
+                type: string
+              error:
+                type: object
+              data:
+                type: null
+  /login:
+    post:
+      tags:
+        - Users
+      summary: Logs in a user
+      security:
+        - bearer: []
+      parameters:
+        - name: name
+          in: formData
+          description: The username for the user.
+          required: true
+          type: string
+        - name: password
+          in: formData
+          description: The desired password for the user
+          required: true
+          type: string
+      responses:
+        200:
+          description: Successfully logged in a user
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              error:
+                type: null
+              data:
+                type: object
+        401:
+          description: Authentication error
+          schema:
+            properties:
+              status:
+                type: string
+              error:
+                type: object
+              data:
+                type: null
+        500:
+          description: Server error
+          schema:
+            properties:
+              status:
+                type: string
+              error:
+                type: object
+              data:
+                type: null
+  /drinks:
+    get:
+      tags:
+        - Drinks
+      summary: Retrieves a list of the logged in users drinks
+      security:
+        - bearer: []
+      responses:
+        200:
+          description: Successfully added user
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              error:
+                type: null
+              data:
+                type: object
+        500:
+          description: Server error
+          schema:
+            properties:
+              status:
+                type: string
+              error:
+                type: object
+              data:
+                type: null
+
+              

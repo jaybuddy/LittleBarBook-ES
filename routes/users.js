@@ -2,9 +2,9 @@ const controller = require('../controllers/users');
 const validateToken = require('../utils').validateToken;
 
 module.exports = (router) => {
-  router.route('/users')
-    .post(controller.add)
-    .get(validateToken, controller.getAll); // This route is now protected
+  router.route('/user')
+    .post(controller.create)
+    .get(validateToken, controller.read);
 
   router.route('/login')
     .post(controller.login);

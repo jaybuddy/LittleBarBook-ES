@@ -3,6 +3,9 @@ require('dotenv').config(); // Sets up dotenv as soon as our application starts
 const express = require('express'); 
 const logger = require('morgan');
 const bodyParser = require('body-parser');
+const swaggerUi = require('swagger-ui-express');
+const YAML = require('yamljs');
+const swaggerDocument = YAML.load('./swagger/swagger.yaml')
 
 const app = express();
 const router = express.Router();
@@ -20,6 +23,7 @@ if (environment !== 'production') {
   app.use(logger('dev'));
 }
 
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use('/api/v1', routes(router));
 
 app.listen(`${stage.port}`, () => {

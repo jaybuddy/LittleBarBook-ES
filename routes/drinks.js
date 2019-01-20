@@ -2,18 +2,13 @@ const controller = require('../controllers/drinks');
 const validateToken = require('../utils').validateToken;
 
 module.exports = (router) => {
-  router.route('/drinks/view')
+  router.route('/drinks')
     .get(validateToken, controller.readAll);
 
-  router.route('/drink/view/:slug')
-    .get(validateToken, controller.read);
-
-  router.route('/drink/delete/:id')
-    .post(validateToken, controller.delete)
-
-  router.route('/drink/edit/:slug')
-    .post(validateToken, controller.update);
-
-  router.route('/drink/add')
+  router.route('/drink')
+    .get(validateToken, controller.read)
+    .delete(validateToken, controller.delete)
+    .patch(validateToken, controller.update)
     .post(validateToken, controller.create);
+
 };

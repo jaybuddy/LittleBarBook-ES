@@ -7,7 +7,7 @@ const {
   NOT_ADDED_DEV,
   NOT_FOUND_ERROR, 
   NOT_FOUND_ERROR_DEV,
-  SLUG_NOT_PROVIDED,
+  ID_NOT_PROVIDED,
   FAILED_UPDATE_ERROR,
   FAILED_DELETE_ERROR
 } = require('../constants/drinks');
@@ -61,10 +61,11 @@ module.exports = {
       let result = {};
       let status = 200;
       if (!err) {
-        const slug = req.params.slug;
+        console.log(req);
+        const id = req.query.id;
         const userId = req.decoded.id;
-        if ( slug ) {
-          Drink.findOne({ slug, userId }) 
+        if ( id ) {
+          Drink.findOne({ _id: id, userId }) 
             .then(drink => {
               // If we get nothing back. it wasnt saved
               if (!drink) {
@@ -87,7 +88,7 @@ module.exports = {
         } else {
           result = formatApiResponse(500, {
             user: NOT_FOUND_ERROR,
-            dev: SLUG_NOT_PROVIDED
+            dev: ID_NOT_PROVIDED
           }, null);
           res.status(result.status).send(result);
         }
@@ -144,10 +145,10 @@ module.exports = {
       let result = {};
       let status = 200;
       if (!err) {
-        const slug = req.params.slug;
-        const { bbId } = req.decoded;
-        req.body.bbId = bbId;
-        Drink.findOneAndUpdate({ slug, bbId }, req.body, { new: true })
+        const id = req.body.id;
+        const { userId } = req.decoded;
+        req.body.userId = userId;
+        Drink.findOneAndUpdate({ _id: id, userId }, req.body, { new: true })
           .then(drink => {
             result = formatApiResponse(status, null, drink);
             res.status(status).send(result);
@@ -177,7 +178,7 @@ module.exports = {
       let result = {};
       let status = 200;
       if (!err) {
-        const id = req.params.id;
+        const id = req.body.id;
         const { userId } = req.decoded;
         Drink.findOneAndDelete({ _id: id, userId }, { select: ["name", "id"] })
           .then(drink => {

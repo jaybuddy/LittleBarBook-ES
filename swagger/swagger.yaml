@@ -15,8 +15,8 @@ produces:
   - application/json
 
 tags:
-  - name: Users
   - name: Drinks
+  - name: Users
 
 securityDefinitions:
   bearer:
@@ -25,6 +25,177 @@ securityDefinitions:
     in: header
 
 paths:
+  /drinks:
+    get:
+      tags:
+        - Drinks
+      summary: Retrieves a list of the logged in users drinks
+      security:
+        - bearer: []
+      responses:
+        200:
+          description: Successfully added user
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              error:
+                type: null
+              data:
+                type: object
+        500:
+          description: Server error
+          schema:
+            properties:
+              status:
+                type: string
+              error:
+                type: object
+              data:
+                type: null
+  /drink: 
+    post:
+      tags:
+        - Drinks
+      summary: Creates a new drink 
+      security:
+        - bearer: []
+      parameters:
+        - name: name
+          in: formData
+          description: The username of the drink.
+          required: true
+          type: string
+        - name: description
+          in: formData
+          description: A description of the drink.
+          required: true
+          type: string
+      responses:
+        200:
+          description: Successfully added drink
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              error:
+                type: null
+              data:
+                type: object
+        500:
+          description: Server error
+          schema:
+            properties:
+              status:
+                type: string
+              error:
+                type: object
+              data:
+                type: null 
+    get:
+      tags:
+        - Drinks
+      summary: Retrieves a list of the logged in users drinks
+      security:
+        - bearer: []
+      parameters:
+        - name: id
+          in: query
+          description: The Id if the drink.
+          required: true
+          type: string
+      responses:
+        200:
+          description: Successfully added user
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              error:
+                type: null
+              data:
+                type: object
+        500:
+          description: Server error
+          schema:
+            properties:
+              status:
+                type: string
+              error:
+                type: object
+              data:
+                type: null 
+    patch:
+      tags:
+        - Drinks
+      summary: Updates a new drink 
+      security:
+        - bearer: []
+      parameters:
+        - name: id
+          in: formData
+          description: The Id if the drink.
+          required: true
+          type: string
+        - name: name
+          in: formData
+          description: The name of the drink.
+          required: true
+          type: string
+        - name: description
+          in: formData
+          description: A description of the drink.
+          type: string
+      responses:
+        200:
+          description: Successfully added drink
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              error:
+                type: null
+              data:
+                type: object
+        500:
+          description: Server error
+          schema:
+            properties:
+              status:
+                type: string
+              error:
+                type: object
+              data:
+                type: null
+    delete:
+      tags:
+        - Drinks
+      summary: Deletes a drink from a users bar book
+      security:
+        - bearer: []
+      parameters:
+        - name: id
+          in: formData
+          description: The Id if the drink to delete.
+          required: true
+          type: string
+      responses:
+        200:
+          description: Successfully added user
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              error:
+                type: null
+              data:
+                type: object
+        500:
   /user:
     post:
       tags:
@@ -148,34 +319,4 @@ paths:
                 type: object
               data:
                 type: null
-  /drinks:
-    get:
-      tags:
-        - Drinks
-      summary: Retrieves a list of the logged in users drinks
-      security:
-        - bearer: []
-      responses:
-        200:
-          description: Successfully added user
-          schema:
-            type: object
-            properties:
-              status:
-                type: string
-              error:
-                type: null
-              data:
-                type: object
-        500:
-          description: Server error
-          schema:
-            properties:
-              status:
-                type: string
-              error:
-                type: object
-              data:
-                type: null
 
-              

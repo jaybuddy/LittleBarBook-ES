@@ -38,7 +38,6 @@ module.exports = {
 
   login: (req, res) => {
     const { name, password } = req.body;
-    console.log(req);
     mongoose.connect(connUri, { useNewUrlParser: true }, (err) => {
       let result = {};
       let status = 200;

@@ -2,53 +2,50 @@ const mongoose = require('mongoose');
 const Drink = require('../models/drinks');
 const { formatApiResponse } = require('../lib/formatters');
 const connUri = require('../lib/database');
-const { 
+const {
   NOT_ADDED,
   NOT_ADDED_DEV,
-  NOT_FOUND_ERROR, 
+  NOT_FOUND_ERROR,
   NOT_FOUND_ERROR_DEV,
   ID_NOT_PROVIDED,
   FAILED_UPDATE_ERROR,
-  FAILED_DELETE_ERROR
+  FAILED_DELETE_ERROR,
+  FAILED_TO_CONNECT,
 } = require('../constants/drinks');
 
-module.exports = {
+const DrinkController = {
   /**
    * Create Drink Method
    * Creates a new drink
    * @returns {Object} The saved drink data.
    */
   create: (req, res) => {
-    mongoose.connect(connUri, { useNewUrlParser : true }, (err) => {
-      let result = {};
-      let status = 200;
-      if (!err) {
-        const { bbId, userId } = req.decoded;
-        const { name, slug, description } = req.body;
-        const drink = new Drink({ name, slug, userId, bbId, description });
-
+    mongoose.connect(connUri, { useNewUrlParser: true })
+      .then(() => {
+        const {
+          decoded: { bbId, userId },
+          body: { name, slug, description },
+        } = req;
+        const drink = new Drink({
+          name, slug, userId, bbId, description,
+        });
+        let result = {};
+        // Save the drink
         drink.save()
-          .then(drink => {
-            // If we get nothing back. it wasnt saved
-            if (!drink) {
+          .then((savedDrink) => {
+            if (!savedDrink) {
               result = formatApiResponse(500, {
                 user: NOT_ADDED,
-                dev: NOT_ADDED_DEV
+                dev: NOT_ADDED_DEV,
               }, {});
             } else {
-              result = formatApiResponse(201, null, drink)
+              result = formatApiResponse(201, null, savedDrink);
             }
             res.status(result.status).send(result);
           })
-          .catch(err => {
-            result = formatApiResponse(500, err, null);
-            res.status(result.status).send(result);
-          });
-      } else {
-        result = formatApiResponse(500, err, null);
-        res.status(result.status).send(result);
-      }
-    });
+          .catch(error => DrinkController.onPassthruError(res, error));
+      })
+      .catch(() => DrinkController.onNoConnection(res));
   },
 
   /**
@@ -57,73 +54,65 @@ module.exports = {
    * returns {object} API call results
    */
   read: (req, res) => {
-    mongoose.connect(connUri, { useNewUrlParser: true }, (err) => {
-      let result = {};
-      let status = 200;
-      if (!err) {
-        console.log(req);
-        const id = req.query.id;
-        const userId = req.decoded.id;
-        if ( id ) {
-          Drink.findOne({ _id: id, userId }) 
-            .then(drink => {
+    mongoose.connect(connUri, { useNewUrlParser: true })
+      .then(() => {
+        const {
+          query: { id },
+          decoded: { id: userId },
+        } = req;
+        let result = {};
+
+        if (id) {
+          Drink.findOne({ _id: id, userId })
+            .then((drink) => {
               // If we get nothing back. it wasnt saved
               if (!drink) {
                 result = formatApiResponse(500, {
                   user: NOT_FOUND_ERROR,
-                  dev: NOT_FOUND_ERROR_DEV
+                  dev: NOT_FOUND_ERROR_DEV,
                 }, {});
               } else {
-                result = formatApiResponse(status, null, drink)
+                result = formatApiResponse(200, null, drink);
               }
               res.status(result.status).send(result);
             })
-            .catch(err => {
-              result = formatApiResponse(500, {
-                user: NOT_FOUND_ERROR,
-                dev: err
-              }, null);
-              res.status(result.status).send(result);
-            });
+            .catch(error => DrinkController.onPassthruError(res, error));
         } else {
           result = formatApiResponse(500, {
             user: NOT_FOUND_ERROR,
-            dev: ID_NOT_PROVIDED
+            dev: ID_NOT_PROVIDED,
           }, null);
           res.status(result.status).send(result);
         }
-      } else {
-        result = formatApiResponse(500, err, null);
-        res.status(result.status).send(result);
-      }
-    });
+      })
+      .catch(() => DrinkController.onNoConnection(res));
   },
 
   /**
    * ReadAll Drinks Method
    * Grabs all of a users drink recipes
-   * @returns {Object} All the users saved drinks. 
+   * @returns {Object} All the users saved drinks.
    */
   readAll: (req, res) => {
     mongoose.connect(connUri, { useNewUrlParser: true }, (err) => {
       let result = {};
-      let status = 200;
+      const status = 200;
       if (!err) {
         const userId = req.decoded.id;
         Drink.find({ userId })
-          .then(drinks => {
+          .then((drinks) => {
             // If we get nothing back. they have no drinks
             if (!drinks) {
               result = formatApiResponse(status, null, {});
             } else {
-              result = formatApiResponse(status, null, drinks)
+              result = formatApiResponse(status, null, drinks);
             }
             res.status(result.status).send(result);
           })
-          .catch(err => {
+          .catch((error) => {
             result = formatApiResponse(500, {
               user: NOT_FOUND_ERROR,
-              dev: err
+              dev: error,
             }, null);
             res.status(result.status).send(result);
           });
@@ -143,23 +132,23 @@ module.exports = {
   update: (req, res) => {
     mongoose.connect(connUri, { useNewUrlParser: true }, (err) => {
       let result = {};
-      let status = 200;
+      const status = 201;
       if (!err) {
-        const id = req.body.id;
+        const { id } = req.body;
         const { userId } = req.decoded;
         req.body.userId = userId;
         Drink.findOneAndUpdate({ _id: id, userId }, req.body, { new: true })
-          .then(drink => {
+          .then((drink) => {
             result = formatApiResponse(status, null, drink);
             res.status(status).send(result);
           })
-          .catch(err => {
+          .catch((error) => {
             result = formatApiResponse(500, {
               user: FAILED_UPDATE_ERROR,
-              dev: err
+              dev: error,
             }, null);
             res.status(result.status).send(result);
-          }); 
+          });
       } else {
         result = formatApiResponse(500, err, null);
         res.status(result.status).send(result);
@@ -176,19 +165,19 @@ module.exports = {
   delete: (req, res) => {
     mongoose.connect(connUri, { useNewUrlParser: true }, (err) => {
       let result = {};
-      let status = 200;
+      const status = 200;
       if (!err) {
-        const id = req.body.id;
+        const { id } = req.body;
         const { userId } = req.decoded;
-        Drink.findOneAndDelete({ _id: id, userId }, { select: ["name", "id"] })
-          .then(drink => {
+        Drink.findOneAndDelete({ _id: id, userId }, { select: ['name', 'id'] })
+          .then((drink) => {
             result = formatApiResponse(status, null, drink);
             res.status(status).send(result);
           })
-          .catch(err => {
+          .catch((error) => {
             result = formatApiResponse(500, {
               user: FAILED_DELETE_ERROR,
-              dev: err
+              dev: error,
             }, null);
             res.status(result.status).send(result);
           });
@@ -197,5 +186,31 @@ module.exports = {
         res.status(result.status).send(result);
       }
     });
-  }
-}
+  },
+
+  /**
+   * onNoConnection
+   * Helper function that sends the no connection error
+   * @param {Object} res The response object
+   */
+  onNoConnection: (res) => {
+    const result = formatApiResponse(500, {
+      user: FAILED_TO_CONNECT,
+      dev: FAILED_TO_CONNECT,
+    }, null);
+    res.status(result.status).send(result);
+  },
+
+  /**
+   * onPassthruError
+   * Helper function that sends an error
+   * @param {Object} res The response object
+   * @param {Object} error The error to be sent
+   */
+  onPassthruError: (res, error) => {
+    const result = formatApiResponse(500, error, null);
+    res.status(result.status).send(result);
+  },
+};
+
+module.exports = DrinkController;

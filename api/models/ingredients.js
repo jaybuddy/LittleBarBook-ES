@@ -1,21 +1,13 @@
 const mongoose = require('mongoose');
-const slug = require('mongoose-slug-updater');
-
-mongoose.plugin(slug);
 
 // schema maps to a collection
-const { Schema } = mongoose;
+const { Schema } = mongoose.Schema;
 
-const drinkSchema = new Schema({
+const ingredientSchema = new Schema({
   name: {
     type: 'String',
     required: true,
     trim: true,
-    unique: true,
-  },
-  slug: {
-    type: String,
-    slug: ['bbId', 'name'],
     unique: true,
   },
   userId: {
@@ -23,15 +15,15 @@ const drinkSchema = new Schema({
     required: true,
     trim: true,
   },
-  bbId: {
+  drinkId: {
     type: 'String',
     required: true,
     trim: true,
   },
-  description: {
+  notes: {
     type: 'String',
     trim: true,
   },
 });
 
-module.exports = mongoose.model('Drink', drinkSchema);
+module.exports = mongoose.model('Ingredient', ingredientSchema);

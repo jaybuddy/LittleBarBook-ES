@@ -27,7 +27,7 @@ module.exports = {
   create: (req, res) => {
     mongoose.connect(connUri, { useNewUrlParser : true }, (err) => {
       let result = {};
-      let status = 200;
+      let status = 201;
       if (!err) {
         const { name, password, email } = req.body;
         const user = new User({ name, password, email }); // document = instance of a model
@@ -73,7 +73,7 @@ module.exports = {
                 dev: NOT_FOUND_ERROR_DEV
               }, {});
             } else {
-              result = formatApiResponse(status, null, drink)
+              result = formatApiResponse(status, null, user)
             }
             res.status(result.status).send(result);
           })
@@ -85,10 +85,7 @@ module.exports = {
             res.status(result.status).send(result);
           });
       } else {
-        result = formatApiResponse(500, {
-          user: NOT_FOUND_ERROR,
-          dev: ID_NOT_PROVIDED
-        }, null);
+        result = formatApiResponse(500, err, null);
         res.status(result.status).send(result);
       }
     });
@@ -142,7 +139,7 @@ module.exports = {
             // We could compare passwords in our model instead of below as well
             bcrypt.compare(password, user.password).then(match => {
               if (match) {
-                status = 200;
+                status = 201;
                 // Create a token
                 const payload = { 
                   id: user._id,
@@ -154,10 +151,10 @@ module.exports = {
                 const options = { expiresIn: stage.jwt.expires, issuer: stage.jwt.issuer };
                 const secret = process.env.JWT_SECRET;
                 const token = jwt.sign(payload, secret, options);
-
+                
                 result.token = token;
                 result.status = status;
-                result.result = user;
+                result.data = user;
               } else {
                 status = 401;
                 result.status = status;
@@ -171,17 +168,16 @@ module.exports = {
               res.status(status).send(result);
             });
           } else {
-            status = 404;
-            result.status = status;
-            result.error = err;
-            res.status(status).send(result);
+            result = formatApiResponse(404, {
+              user: NOT_FOUND_ERROR,
+              dev: NOT_FOUND_ERROR_DEV
+            }, {}); 
+            res.status(result.status).send(result);
           }
         });
       } else {
-        status = 500;
-        result.status = status;
-        result.error = err;
-        res.status(status).send(result);
+        result = formatApiResponse(500, err, null);
+        res.status(result.status).send(result);
       }
     });
   },

@@ -11,4 +11,5 @@ module.exports = {
   FAILED_DELETE_ERROR: 'Whoop! we could not delete your drink, please try again.',
   // Connection
   FAILED_TO_CONNECT: 'Failed to connect to the database. :(',
+  AUTHENTICATION_ERROR: 'Authentication error',
 };

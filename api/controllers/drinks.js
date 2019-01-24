@@ -58,7 +58,7 @@ const DrinkController = {
       .then(() => {
         const {
           query: { id },
-          decoded: { id: userId },
+          decoded: { userId },
         } = req;
         let result = {};
 
@@ -94,33 +94,24 @@ const DrinkController = {
    * @returns {Object} All the users saved drinks.
    */
   readAll: (req, res) => {
-    mongoose.connect(connUri, { useNewUrlParser: true }, (err) => {
-      let result = {};
-      const status = 200;
-      if (!err) {
-        const userId = req.decoded.id;
+    mongoose.connect(connUri, { useNewUrlParser: true })
+      .then(() => {
+        const { userId } = req.decoded;
+        let result = {};
+
         Drink.find({ userId })
           .then((drinks) => {
             // If we get nothing back. they have no drinks
             if (!drinks) {
-              result = formatApiResponse(status, null, {});
+              result = formatApiResponse(200, null, {});
             } else {
-              result = formatApiResponse(status, null, drinks);
+              result = formatApiResponse(200, null, drinks);
             }
             res.status(result.status).send(result);
           })
-          .catch((error) => {
-            result = formatApiResponse(500, {
-              user: NOT_FOUND_ERROR,
-              dev: error,
-            }, null);
-            res.status(result.status).send(result);
-          });
-      } else {
-        result = formatApiResponse(500, err, null);
-        res.status(result.status).send(result);
-      }
-    });
+          .catch(error => DrinkController.onPassthruError(res, error));
+      })
+      .catch(() => DrinkController.onNoConnection(res));
   },
 
   /**
@@ -130,17 +121,19 @@ const DrinkController = {
    * @returns {Object} The updated drink
    */
   update: (req, res) => {
-    mongoose.connect(connUri, { useNewUrlParser: true }, (err) => {
-      let result = {};
-      const status = 201;
-      if (!err) {
-        const { id } = req.body;
-        const { userId } = req.decoded;
+    mongoose.connect(connUri, { useNewUrlParser: true })
+      .then(() => {
+        const {
+          body: { id },
+          decoded: { userId },
+        } = req;
+        let result = {};
         req.body.userId = userId;
+
         Drink.findOneAndUpdate({ _id: id, userId }, req.body, { new: true })
           .then((drink) => {
-            result = formatApiResponse(status, null, drink);
-            res.status(status).send(result);
+            result = formatApiResponse(201, null, drink);
+            res.status(result.status).send(result);
           })
           .catch((error) => {
             result = formatApiResponse(500, {
@@ -149,11 +142,8 @@ const DrinkController = {
             }, null);
             res.status(result.status).send(result);
           });
-      } else {
-        result = formatApiResponse(500, err, null);
-        res.status(result.status).send(result);
-      }
-    });
+      })
+      .catch(() => DrinkController.onNoConnection(res));
   },
 
   /**
@@ -163,16 +153,18 @@ const DrinkController = {
    * @retuns {Object} The name and ID of the deleted drink
    */
   delete: (req, res) => {
-    mongoose.connect(connUri, { useNewUrlParser: true }, (err) => {
-      let result = {};
-      const status = 200;
-      if (!err) {
-        const { id } = req.body;
-        const { userId } = req.decoded;
+    mongoose.connect(connUri, { useNewUrlParser: true })
+      .then(() => {
+        const {
+          body: { id },
+          decoded: { userId },
+        } = req;
+        let result = {};
+
         Drink.findOneAndDelete({ _id: id, userId }, { select: ['name', 'id'] })
           .then((drink) => {
-            result = formatApiResponse(status, null, drink);
-            res.status(status).send(result);
+            result = formatApiResponse(200, null, drink);
+            res.status(result.status).send(result);
           })
           .catch((error) => {
             result = formatApiResponse(500, {
@@ -181,11 +173,8 @@ const DrinkController = {
             }, null);
             res.status(result.status).send(result);
           });
-      } else {
-        result = formatApiResponse(500, err, null);
-        res.status(result.status).send(result);
-      }
-    });
+      })
+      .catch(() => DrinkController.onNoConnection(res));
   },
 
   /**

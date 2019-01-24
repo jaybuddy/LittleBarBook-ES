@@ -1,21 +1,22 @@
 const environment = process.env.NODE_ENV; // development
-const stage = require('../config')[environment];
-const { formatApiResponse } = require('../lib/formatters');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
-const User = require('../models/users');
 const jwt = require('jsonwebtoken');
+const stage = require('../config')[environment];
 const connUri = require('../lib/database');
-const { 
+const { formatApiResponse } = require('../lib/formatters');
+const User = require('../models/users');
+const {
   NOT_ADDED,
   NOT_ADDED_DEV,
-  NOT_FOUND_ERROR, 
+  NOT_FOUND_ERROR,
   NOT_FOUND_ERROR_DEV,
-  ID_NOT_PROVIDED,
   FAILED_UPDATE_ERROR,
+  FAILED_TO_CONNECT,
+  AUTHENTICATION_ERROR,
 } = require('../constants/users');
 
-module.exports = {
+const UserController = {
   /**
    * Create user method
    * Used to add a new user. (register)
@@ -25,33 +26,26 @@ module.exports = {
    * @returns {Object} The users registered information
    */
   create: (req, res) => {
-    mongoose.connect(connUri, { useNewUrlParser : true }, (err) => {
-      let result = {};
-      let status = 201;
-      if (!err) {
+    mongoose.connect(connUri, { useNewUrlParser: true })
+      .then(() => {
         const { name, password, email } = req.body;
-        const user = new User({ name, password, email }); // document = instance of a model
+        const user = new User({ name, password, email });
+        let result = {};
         user.save()
-          .then(user => {
-            if (!user) {
+          .then((savedUser) => {
+            if (!savedUser) {
               result = formatApiResponse(500, {
                 user: NOT_ADDED,
-                dev: NOT_ADDED_DEV
+                dev: NOT_ADDED_DEV,
               }, {});
             } else {
-              result = formatApiResponse(status, null, user)
+              result = formatApiResponse(201, null, user);
             }
             res.status(result.status).send(result);
           })
-          .catch(err => {
-            result = formatApiResponse(500, err, null);
-            res.status(result.status).send(result);
-          });
-      } else {
-        result = formatApiResponse(500, err, null);
-        res.status(result.status).send(result);
-      }
-    });
+          .catch(error => UserController.onPassthruError(res, error));
+      })
+      .catch(() => UserController.onNoConnection(res));
   },
 
   /**
@@ -60,35 +54,32 @@ module.exports = {
    * @returns {Object} Your user data
    */
   read: (req, res) => {
-    mongoose.connect(connUri, { useNewUrlParser: true }, (err) => {
-      let result = {};
-      let status = 200;
-      if (!err) {
-        const {id} = req.decoded;
+    mongoose.connect(connUri, { useNewUrlParser: true })
+      .then(() => {
+        const { id } = req.decoded;
+        let result = {};
+
         User.findOne({ _id: id })
-          .then(user => {
+          .then((user) => {
             if (!user) {
               result = formatApiResponse(500, {
                 user: NOT_FOUND_ERROR,
-                dev: NOT_FOUND_ERROR_DEV
+                dev: NOT_FOUND_ERROR_DEV,
               }, {});
             } else {
-              result = formatApiResponse(status, null, user)
+              result = formatApiResponse(200, null, user);
             }
             res.status(result.status).send(result);
           })
-          .catch(err => {
+          .catch((err) => {
             result = formatApiResponse(500, {
               user: NOT_FOUND_ERROR,
-              dev: err
+              dev: err,
             }, null);
             res.status(result.status).send(result);
           });
-      } else {
-        result = formatApiResponse(500, err, null);
-        res.status(result.status).send(result);
-      }
-    });
+      })
+      .catch(() => UserController.onNoConnection(res));
   },
 
   /**
@@ -97,89 +88,73 @@ module.exports = {
    * @return {Object} The updates user.
    */
   update: (req, res) => {
-    mongoose.connect(connUri, { useNewUrlParser: true }, (err) => {
-      let result = {};
-      let status = 200;
-      if (!err) {
+    mongoose.connect(connUri, { useNewUrlParser: true })
+      .then(() => {
         const { id } = req.decoded;
+        let result = {};
+
         User.findOneAndUpdate({ _id: id }, req.body, { new: true })
-          .then(user => {
-            result = formatApiResponse(status, null, drink);
-            res.status(status).send(result);
+          .then((user) => {
+            result = formatApiResponse(200, null, user);
+            res.status(result.status).send(result);
           })
-          .catch(err => {
+          .catch((err) => {
             result = formatApiResponse(500, {
               user: FAILED_UPDATE_ERROR,
-              dev: err
+              dev: err,
             }, null);
             res.status(result.status).send(result);
-          }); 
-      } else {
-        result = formatApiResponse(500, err, null);
-        res.status(result.status).send(result);
-      }
-    });
+          });
+      })
+      .catch(() => UserController.onNoConnection(res));
   },
 
   /**
    * Login user method
-   * Method used to log a user in 
+   * Method used to log a user in
    * @param {String} name The users username
    * @param {String} password The users password
    * @returns {Object} The logged in user with JWT
    */
   login: (req, res) => {
     const { name, password } = req.body;
-    mongoose.connect(connUri, { useNewUrlParser: true }, (err) => {
-      let result = {};
-      let status = 200;
-      if(!err) {
-        User.findOne({name}, (err, user) => {
-          if (!err && user) {
+    mongoose.connect(connUri, { useNewUrlParser: true })
+      .then(() => {
+        let result = {};
+
+        User.findOne({ name }, (err, user) => {
+          if (user) {
             // We could compare passwords in our model instead of below as well
-            bcrypt.compare(password, user.password).then(match => {
-              if (match) {
-                status = 201;
-                // Create a token
-                const payload = { 
-                  id: user._id,
-                  username: user.name,
-                  bbId: user.bbId, 
-                  userId: user.id,
-                  role: user.role,
-                };
-                const options = { expiresIn: stage.jwt.expires, issuer: stage.jwt.issuer };
-                const secret = process.env.JWT_SECRET;
-                const token = jwt.sign(payload, secret, options);
-                
-                result.token = token;
-                result.status = status;
-                result.data = user;
-              } else {
-                status = 401;
-                result.status = status;
-                result.error = `Authentication error`;
-              }
-              res.status(status).send(result);
-            }).catch(err => {
-              status = 500;
-              result.status = status;
-              result.error = err;
-              res.status(status).send(result);
-            });
+            bcrypt.compare(password, user.password)
+              .then((match) => {
+                if (match) {
+                  const payload = { username: user.name, userId: user.id, bbId: user.bbId };
+                  const options = { expiresIn: stage.jwt.expires, issuer: stage.jwt.issuer };
+                  const secret = process.env.JWT_SECRET;
+                  const token = jwt.sign(payload, secret, options);
+
+                  result = formatApiResponse(201, null, user);
+                  result.token = token;
+                } else {
+                  result.error = 'Authentication error';
+                  result = formatApiResponse(401, {
+                    user: AUTHENTICATION_ERROR,
+                    dev: AUTHENTICATION_ERROR,
+                  }, user);
+                }
+                res.status(result.status).send(result);
+              })
+              .catch(error => UserController.onPassthruError(res, error));
           } else {
             result = formatApiResponse(404, {
               user: NOT_FOUND_ERROR,
-              dev: NOT_FOUND_ERROR_DEV
-            }, {}); 
+              dev: NOT_FOUND_ERROR_DEV,
+            }, {});
             res.status(result.status).send(result);
           }
         });
-      } else {
-        result = formatApiResponse(500, err, null);
-        res.status(result.status).send(result);
-      }
-    });
+      })
+      .catch(() => UserController.onNoConnection(res));
   },
 
   /**
@@ -188,5 +163,31 @@ module.exports = {
    */
   logout: (req, res) => {
 
-  }
-}
+  },
+
+  /**
+   * onNoConnection
+   * Helper function that sends the no connection error
+   * @param {Object} res The response object
+   */
+  onNoConnection: (res) => {
+    const result = formatApiResponse(500, {
+      user: FAILED_TO_CONNECT,
+      dev: FAILED_TO_CONNECT,
+    }, null);
+    res.status(result.status).send(result);
+  },
+
+  /**
+   * onPassthruError
+   * Helper function that sends an error
+   * @param {Object} res The response object
+   * @param {Object} error The error to be sent
+   */
+  onPassthruError: (res, error) => {
+    const result = formatApiResponse(500, error, null);
+    res.status(result.status).send(result);
+  },
+};
+
+module.exports = UserController;

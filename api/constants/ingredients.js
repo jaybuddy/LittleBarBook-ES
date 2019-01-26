@@ -9,4 +9,5 @@ module.exports = {
   // Update
   FAILED_UPDATE_ERROR: 'Whoops! we were upable to update your ingredient, please try again',
   FAILED_DELETE_ERROR: 'Whoop! we could not delete your ingredient, please try again.',
-}
+  AUTHENTICATION_ERROR: 'Authentication error',
+};

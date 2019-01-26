@@ -122,37 +122,38 @@ const UserController = {
       .then(() => {
         let result = {};
 
-        User.findOne({ name }, (err, user) => {
-          if (user) {
-            // We could compare passwords in our model instead of below as well
-            bcrypt.compare(password, user.password)
-              .then((match) => {
-                if (match) {
-                  const payload = { username: user.name, userId: user.id, bbId: user.bbId };
-                  const options = { expiresIn: stage.jwt.expires, issuer: stage.jwt.issuer };
-                  const secret = process.env.JWT_SECRET;
-                  const token = jwt.sign(payload, secret, options);
+        User.findOne({ name })
+          .then((user) => {
+            if (user) {
+              bcrypt.compare(password, user.password)
+                .then((match) => {
+                  if (match) {
+                    const payload = { username: user.name, userId: user.id, bbId: user.bbId };
+                    const options = { expiresIn: stage.jwt.expires, issuer: stage.jwt.issuer };
+                    const secret = process.env.JWT_SECRET;
+                    const token = jwt.sign(payload, secret, options);
 
-                  result = formatApiResponse(201, null, user);
-                  result.token = token;
-                } else {
-                  result.error = 'Authentication error';
-                  result = formatApiResponse(401, {
-                    user: AUTHENTICATION_ERROR,
-                    dev: AUTHENTICATION_ERROR,
-                  }, user);
-                }
-                res.status(result.status).send(result);
-              })
-              .catch(error => UserController.onPassthruError(res, error));
-          } else {
-            result = formatApiResponse(404, {
-              user: NOT_FOUND_ERROR,
-              dev: NOT_FOUND_ERROR_DEV,
-            }, {});
-            res.status(result.status).send(result);
-          }
-        });
+                    result = formatApiResponse(201, null, user);
+                    result.token = token;
+                  } else {
+                    result.error = 'Authentication error';
+                    result = formatApiResponse(401, {
+                      user: AUTHENTICATION_ERROR,
+                      dev: AUTHENTICATION_ERROR,
+                    }, user);
+                  }
+                  res.status(result.status).send(result);
+                })
+                .catch(error => UserController.onPassthruError(res, error));
+            } else {
+              result = formatApiResponse(404, {
+                user: NOT_FOUND_ERROR,
+                dev: NOT_FOUND_ERROR_DEV,
+              }, {});
+              res.status(result.status).send(result);
+            }
+          })
+          .catch(error => UserController.onPassthruError(res, error));
       })
       .catch(() => UserController.onNoConnection(res));
   },

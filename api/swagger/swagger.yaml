@@ -16,6 +16,7 @@ produces:
 
 tags:
   - name: Drinks
+  - name: Ingredients
   - name: Users
 
 securityDefinitions:
@@ -54,6 +55,7 @@ paths:
                 type: object
               data:
                 type: null
+  
   /drink: 
     post:
       tags:
@@ -185,6 +187,86 @@ paths:
           type: string
       responses:
         200:
+          description: Successfully deleted drink
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              error:
+                type: null
+              data:
+                type: object
+        500:
+          description: Server error
+          schema:
+            properties:
+              status:
+                type: string
+              error:
+                type: object
+              data:
+                type: null
+  
+  /ingredient: 
+    post:
+      tags:
+        - Ingredients
+      summary: Creates a new drink ingredient
+      security:
+        - bearer: []
+      parameters:
+        - name: name
+          in: formData
+          description: The name of the ingredient.
+          required: true
+          type: string
+        - name: drinkId
+          in: formData
+          description: The id of the drink this ingredient belongs to.
+          required: true
+          type: string
+        - name: notes
+          in: formData
+          description: A description of the ingredient.
+          required: true
+          type: string
+      responses:
+        200:
+          description: Successfully added drink
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              error:
+                type: null
+              data:
+                type: object
+        500:
+          description: Server error
+          schema:
+            properties:
+              status:
+                type: string
+              error:
+                type: object
+              data:
+                type: null 
+    get:
+      tags:
+        - Ingredients
+      summary: Retrieves a specific ingredient
+      security:
+        - bearer: []
+      parameters:
+        - name: id
+          in: query
+          description: The Id if the ingredient.
+          required: true
+          type: string
+      responses:
+        200:
           description: Successfully added user
           schema:
             type: object
@@ -196,6 +278,93 @@ paths:
               data:
                 type: object
         500:
+          description: Server error
+          schema:
+            properties:
+              status:
+                type: string
+              error:
+                type: object
+              data:
+                type: null 
+    patch:
+      tags:
+        - Ingredients
+      summary: Updates an ingredient 
+      security:
+        - bearer: []
+      parameters:
+        - name: id
+          in: formData
+          description: The Id of the ingredient to be updated.
+          required: true
+          type: string
+        - name: name
+          in: formData
+          description: The name of the ingredient.
+          required: true
+          type: string
+        - name: notes
+          in: formData
+          description: A description of the ingredient.
+          type: string
+      responses:
+        200:
+          description: Successfully added ingredient
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              error:
+                type: null
+              data:
+                type: object
+        500:
+          description: Server error
+          schema:
+            properties:
+              status:
+                type: string
+              error:
+                type: object
+              data:
+                type: null
+    delete:
+      tags:
+        - Ingredients
+      summary: Deletes an ingredient from a drink
+      security:
+        - bearer: []
+      parameters:
+        - name: id
+          in: formData
+          description: The Id if the ingredient to delete.
+          required: true
+          type: string
+      responses:
+        200:
+          description: Successfully deleted ingredient
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              error:
+                type: null
+              data:
+                type: object
+        500:
+          description: Server error
+          schema:
+            properties:
+              status:
+                type: string
+              error:
+                type: object
+              data:
+                type: null
+  
   /user:
     post:
       tags:
@@ -297,6 +466,7 @@ paths:
                 type: object
               data:
                 type: null
+  
   /login:
     post:
       tags:
@@ -347,6 +517,7 @@ paths:
                 type: object
               data:
                 type: null
+  
   /logout:
     get:
       tags:

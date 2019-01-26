@@ -163,6 +163,58 @@ paths:
           schema:
             $ref: "#/definitions/ServerErrorSchema"
   
+  /ingredients:
+    get:
+      tags:
+        - Ingredients
+      summary: Retrieves a list of the ingredients for a drink
+      security:
+        - bearer: []
+      parameters:
+        - name: id
+          in: query
+          description: The Id if the drink.
+          required: true
+          type: string
+      responses:
+        200:
+          description: Successfully retrieved ingredients
+          schema:
+            $ref: "#/definitions/SuccessSchema"
+        401:
+          description: Authentication error
+          schema:
+            $ref: "#/definitions/AuthErrorSchema"
+        500:
+          description: Server error
+          schema: 
+            $ref: "#/definitions/ServerErrorSchema"
+    delete:
+      tags:
+        - Ingredients
+      summary: Deletes all ingredient from a drink
+      security:
+        - bearer: []
+      parameters:
+        - name: id
+          in: formData
+          description: The Id if the drink whose ingredients we are to delete.
+          required: true
+          type: string
+      responses:
+        200:
+          description: Successfully deleted ingredients
+          schema:
+            $ref: "#/definitions/SuccessSchema"
+        401:
+          description: Authentication error
+          schema:
+            $ref: "#/definitions/AuthErrorSchema"
+        500:
+          description: Server error
+          schema:
+            $ref: "#/definitions/ServerErrorSchema"
+
   /ingredient: 
     post:
       tags:

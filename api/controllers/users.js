@@ -136,17 +136,16 @@ const UserController = {
                     result = formatApiResponse(201, null, user);
                     result.token = token;
                   } else {
-                    result.error = 'Authentication error';
                     result = formatApiResponse(401, {
                       user: AUTHENTICATION_ERROR,
                       dev: AUTHENTICATION_ERROR,
-                    }, user);
+                    }, null);
                   }
                   res.status(result.status).send(result);
                 })
                 .catch(error => UserController.onPassthruError(res, error));
             } else {
-              result = formatApiResponse(404, {
+              result = formatApiResponse(500, {
                 user: NOT_FOUND_ERROR,
                 dev: NOT_FOUND_ERROR_DEV,
               }, {});

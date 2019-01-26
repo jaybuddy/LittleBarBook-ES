@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 // schema maps to a collection
-const { Schema } = mongoose.Schema;
+const { Schema } = mongoose;
 
 const ingredientSchema = new Schema({
   name: {

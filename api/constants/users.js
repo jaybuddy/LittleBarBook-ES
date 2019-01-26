@@ -8,4 +8,5 @@ module.exports = {
     ID_NOT_PROVIDED: 'There was not id in the URL',
     // Update
     FAILED_UPDATE_ERROR: 'Whoops! we were upable to update your user, please try again',
+    AUTHENTICATION_ERROR: 'Authentication error',
   }

@@ -15,7 +15,7 @@ const routes = require('./routes/index.js');
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
-  extended: true
+  extended: true,
 }));
 
 if (environment !== 'production') {

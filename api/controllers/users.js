@@ -171,9 +171,8 @@ const UserController = {
     mongoose.connect(connUri, { useNewUrlParser: true })
       .then(() => {
         const {
-          decoded: { token },
+          body: { token },
         } = req;
-
         const newToken = new Token({
           token,
           createdAt: new Date(),

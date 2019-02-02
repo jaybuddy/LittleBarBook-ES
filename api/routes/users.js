@@ -1,5 +1,5 @@
 const controller = require('../controllers/users');
-const validateToken = require('../lib/utils').validateToken;
+const { validateToken } = require('../lib/utils');
 
 module.exports = (router) => {
   router.route('/user')
@@ -10,6 +10,6 @@ module.exports = (router) => {
   router.route('/login')
     .post(controller.login);
 
-    router.route('/logout')
-    .post(controller.logout);
+  router.route('/logout')
+    .get(validateToken, controller.logout);
 };

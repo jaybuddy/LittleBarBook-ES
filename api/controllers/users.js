@@ -6,6 +6,7 @@ const stage = require('../config')[environment];
 const connUri = require('../lib/database');
 const { formatApiResponse } = require('../lib/formatters');
 const User = require('../models/users');
+const Token = require('../models/tokens');
 const {
   NOT_ADDED,
   NOT_ADDED_DEV,
@@ -15,6 +16,10 @@ const {
   FAILED_TO_CONNECT,
   AUTHENTICATION_ERROR,
 } = require('../constants/users');
+const {
+  NOT_ADDED_T,
+  NOT_ADDED_DEV_T,
+} = require('../constants/tokens');
 
 const UserController = {
   /**
@@ -162,7 +167,34 @@ const UserController = {
    * Used to log a user out.
    */
   logout: (req, res) => {
+    // Add the token to expired Tokens
+    mongoose.connect(connUri, { useNewUrlParser: true })
+      .then(() => {
+        const {
+          decoded: { token },
+        } = req;
 
+        const newToken = new Token({
+          token,
+          createdAt: new Date(),
+        });
+        let result = {};
+
+        newToken.save()
+          .then((savedToken) => {
+            if (!savedToken) {
+              result = formatApiResponse(500, {
+                user: NOT_ADDED_T,
+                dev: NOT_ADDED_DEV_T,
+              }, {});
+            } else {
+              result = formatApiResponse(201, null, savedToken);
+            }
+            res.status(result.status).send(result);
+          })
+          .catch(error => UserController.onPassthruError(res, error));
+      })
+      .catch(() => UserController.onNoConnection(res));
   },
 
   /**

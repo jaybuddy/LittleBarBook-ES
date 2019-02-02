@@ -406,7 +406,7 @@ paths:
           description: Server error
           schema:
             $ref: "#/definitions/ServerErrorSchema"
-  
+
   /login:
     post:
       tags:
@@ -436,7 +436,7 @@ paths:
             $ref: "#/definitions/ServerErrorSchema"
   
   /logout:
-    get:
+    get: 
       tags:
         - Users
       summary: Logs out a user
@@ -444,7 +444,7 @@ paths:
         - bearer: []
       responses:
         200:
-          description: Successfully logged out a user
+          description: Successfully logged out user
           schema:
             $ref: "#/definitions/SuccessSchema"
         401:

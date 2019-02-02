@@ -1,8 +1,7 @@
 {
 	"info": {
+		"_postman_id": "285fb536-7d6f-4766-90ae-b5b6a21fb6c4",
 		"name": "LBB - API tests",
-		"_postman_id": "7a834a21-cb57-08cc-06f1-4de5151679e2",
-		"description": "",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -44,19 +43,16 @@
 						{
 							"key": "name",
 							"value": "testUser",
-							"description": "",
 							"type": "text"
 						},
 						{
 							"key": "password",
 							"value": "abc123",
-							"description": "",
 							"type": "text"
 						},
 						{
 							"key": "email",
 							"value": "test@test.com",
-							"description": "",
 							"type": "text"
 						}
 					]
@@ -72,8 +68,7 @@
 						"v1",
 						"user"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
@@ -118,13 +113,11 @@
 						{
 							"key": "password",
 							"value": "abc123",
-							"description": "",
 							"type": "text"
 						},
 						{
 							"key": "name",
 							"value": "testUser",
-							"description": "",
 							"type": "text"
 						}
 					]
@@ -140,8 +133,7 @@
 						"v1",
 						"login"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
@@ -193,13 +185,11 @@
 						{
 							"key": "name",
 							"value": " Test Drink",
-							"description": "",
 							"type": "text"
 						},
 						{
 							"key": "description",
 							"value": "This is a test description",
-							"description": "",
 							"type": "text"
 						}
 					]
@@ -215,8 +205,7 @@
 						"v1",
 						"drink"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
@@ -265,19 +254,16 @@
 						{
 							"key": "name",
 							"value": " Test Drink (Edited)",
-							"description": "",
 							"type": "text"
 						},
 						{
 							"key": "description",
 							"value": "This is a test description (edited)",
-							"description": "",
 							"type": "text"
 						},
 						{
 							"key": "id",
 							"value": "{{drinkId}}",
-							"description": "",
 							"type": "text"
 						}
 					]
@@ -293,8 +279,7 @@
 						"v1",
 						"drink"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
@@ -339,27 +324,8 @@
 					}
 				],
 				"body": {
-					"mode": "urlencoded",
-					"urlencoded": [
-						{
-							"key": "name",
-							"value": " Test Drink (Edited)",
-							"description": "",
-							"type": "text"
-						},
-						{
-							"key": "description",
-							"value": "This is a test description (edited)",
-							"description": "",
-							"type": "text"
-						},
-						{
-							"key": "id",
-							"value": "{{drinkId}}",
-							"description": "",
-							"type": "text"
-						}
-					]
+					"mode": "raw",
+					"raw": ""
 				},
 				"url": {
 					"raw": "localhost:3000/api/v1/drink?id={{drinkId}}",
@@ -375,12 +341,10 @@
 					"query": [
 						{
 							"key": "id",
-							"value": "{{drinkId}}",
-							"equals": true
+							"value": "{{drinkId}}"
 						}
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
@@ -433,13 +397,11 @@
 						{
 							"key": "name",
 							"value": " Test Drink 2",
-							"description": "",
 							"type": "text"
 						},
 						{
 							"key": "description",
 							"value": "This is a test description 2",
-							"description": "",
 							"type": "text"
 						}
 					]
@@ -455,8 +417,7 @@
 						"v1",
 						"drink"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
@@ -501,27 +462,8 @@
 					}
 				],
 				"body": {
-					"mode": "urlencoded",
-					"urlencoded": [
-						{
-							"key": "name",
-							"value": " Test Drink (Edited)",
-							"description": "",
-							"type": "text"
-						},
-						{
-							"key": "description",
-							"value": "This is a test description (edited)",
-							"description": "",
-							"type": "text"
-						},
-						{
-							"key": "id",
-							"value": "{{drinkId}}",
-							"description": "",
-							"type": "text"
-						}
-					]
+					"mode": "raw",
+					"raw": ""
 				},
 				"url": {
 					"raw": "localhost:3000/api/v1/drinks",
@@ -534,8 +476,7 @@
 						"v1",
 						"drinks"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
@@ -584,7 +525,6 @@
 						{
 							"key": "id",
 							"value": "{{drinkId}}",
-							"description": "",
 							"type": "text"
 						}
 					]
@@ -600,8 +540,7 @@
 						"v1",
 						"drink"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
@@ -649,7 +588,6 @@
 						{
 							"key": "id",
 							"value": "{{drinkId2}}",
-							"description": "",
 							"type": "text"
 						}
 					]
@@ -665,8 +603,70 @@
 						"v1",
 						"drink"
 					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Logout the user",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "aaf7d075-f726-4e14-b514-4cf08d98c21a",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt}}",
+							"type": "string"
+						}
+					]
 				},
-				"description": ""
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "token",
+							"value": "{{jwt}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "localhost:3000/api/v1/logout",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"v1",
+						"logout"
+					]
+				}
 			},
 			"response": []
 		}

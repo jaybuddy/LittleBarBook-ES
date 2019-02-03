@@ -1,4 +1,6 @@
 const environment = process.env.NODE_ENV; // development
+const cookieName = process.env.COOKIE_NAME;
+const cookieExp = process.env.COOKIE_EXPIRATION;
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -138,8 +140,13 @@ const UserController = {
                     const secret = process.env.JWT_SECRET;
                     const token = jwt.sign(payload, secret, options);
 
+                    // Set the token in a cookie.
+                    res.cookie(cookieName, { token }, {
+                      httpOnly: true,
+                      maxAge: cookieExp,
+                    });
+
                     result = formatApiResponse(201, null, user);
-                    result.token = token;
                   } else {
                     result = formatApiResponse(401, {
                       user: AUTHENTICATION_ERROR,
@@ -170,9 +177,7 @@ const UserController = {
     // Add the token to expired Tokens
     mongoose.connect(connUri, { useNewUrlParser: true })
       .then(() => {
-        const {
-          body: { token },
-        } = req;
+        const { token } = req.cookies[cookieName];
         const newToken = new Token({
           token,
           createdAt: new Date(),
@@ -187,6 +192,7 @@ const UserController = {
                 dev: NOT_ADDED_DEV_T,
               }, {});
             } else {
+              res.clearCookie(cookieName);
               result = formatApiResponse(201, null, savedToken);
             }
             res.status(result.status).send(result);

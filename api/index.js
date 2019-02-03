@@ -1,10 +1,12 @@
 require('dotenv').config();
-const express = require('express'); 
+const express = require('express');
 const logger = require('morgan');
 const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
 const swaggerUi = require('swagger-ui-express');
 const YAML = require('yamljs');
-const swaggerDocument = YAML.load('./swagger/swagger.yaml')
+
+const swaggerDocument = YAML.load('./swagger/swagger.yaml');
 
 const app = express();
 const router = express.Router();
@@ -14,6 +16,7 @@ const stage = require('./config')[environment];
 const routes = require('./routes/index.js');
 
 app.use(bodyParser.json());
+app.use(cookieParser());
 app.use(bodyParser.urlencoded({
   extended: true,
 }));
@@ -22,6 +25,7 @@ if (environment !== 'production') {
   app.use(logger('dev'));
 }
 
+// API Routes
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use('/api/v1', routes(router));
 

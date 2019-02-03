@@ -1,0 +1,11 @@
+Views (Non-mutation queries)
+  - login
+  - My Drinks
+    - User
+    - Drinks (userID)
+    - Ingredients (drinkID, UserID)
+  - Add Drinks
+    - User
+  - Edit Drink
+    - User
+    - Drink (id)

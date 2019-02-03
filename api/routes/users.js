@@ -11,5 +11,5 @@ module.exports = (router) => {
     .post(controller.login);
 
   router.route('/logout')
-    .post(validateToken, controller.logout);
+    .get(validateToken, controller.logout);
 };

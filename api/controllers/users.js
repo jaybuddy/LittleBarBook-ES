@@ -193,7 +193,7 @@ const UserController = {
               }, {});
             } else {
               res.clearCookie(cookieName);
-              result = formatApiResponse(201, null, savedToken);
+              result = formatApiResponse(200, null, savedToken);
             }
             res.status(result.status).send(result);
           })

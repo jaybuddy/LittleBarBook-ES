@@ -1,0 +1,7 @@
+type Ingredient {
+    id: String!
+    name: String!
+    userId: String!
+    drinkId: String!
+    notes: String!
+}

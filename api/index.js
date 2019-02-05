@@ -3,6 +3,7 @@ const express = require('express');
 const logger = require('morgan');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
+const graphqlHTTP = require('express-graphql');
 const swaggerUi = require('swagger-ui-express');
 const YAML = require('yamljs');
 
@@ -14,6 +15,8 @@ const router = express.Router();
 const environment = process.env.NODE_ENV;
 const stage = require('./config')[environment];
 const routes = require('./routes/index.js');
+
+const schema = require('./schema');
 
 app.use(bodyParser.json());
 app.use(cookieParser());
@@ -28,6 +31,16 @@ if (environment !== 'production') {
 // API Routes
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use('/api/v1', routes(router));
+
+app.use('/graphql',
+  graphqlHTTP(req => ({
+    schema,
+    rootValue: {
+
+    },
+    pretty: true,
+    graphiql: true,
+  })));
 
 app.listen(`${stage.port}`, () => {
   console.log(`Server now listening at localhost:${stage.port}`);

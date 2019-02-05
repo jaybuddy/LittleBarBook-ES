@@ -1,3 +1,5 @@
 type Query {
-    Users: [User!]!
+    User: [User]!
+    Drinks: [Drink]!
+    Ingredient: [Ingredient]
 }

@@ -98,7 +98,7 @@ const DrinkController = {
       .then(() => {
         const { userId } = req.decoded;
         let result = {};
-
+console.log(req);
         Drink.find({ userId })
           .then((drinks) => {
             // If we get nothing back. they have no drinks

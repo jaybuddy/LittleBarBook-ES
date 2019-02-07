@@ -6,6 +6,7 @@ const cookieParser = require('cookie-parser');
 const graphqlHTTP = require('express-graphql');
 const swaggerUi = require('swagger-ui-express');
 const YAML = require('yamljs');
+const { parseAuth } = require('./lib/gqlAuth');
 
 const swaggerDocument = YAML.load('./swagger/swagger.yaml');
 
@@ -33,11 +34,11 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use('/api/v1', routes(router));
 
 app.use('/graphql',
+  parseAuth,
   graphqlHTTP(req => ({
     schema,
-    rootValue: {
-
-    },
+    rootValue: {},
+    context: req.headers,
     pretty: true,
     graphiql: true,
   })));

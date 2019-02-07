@@ -1,4 +1,3 @@
-const cookieName = process.env.COOKIE_NAME;
 const environment = process.env.NODE_ENV; // development
 const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
@@ -12,17 +11,9 @@ module.exports = {
    * Method validates an incoming JWT
    */
   validateToken: (req, res, next) => {
-    const authCookie = req.cookies[cookieName];
+    const { token } = req.headers;
     let result;
-    let token;
-    if (authCookie && authCookie.token) {
-      // Swagger 2.0 doesnt send "Bearer " in the request... so we gotta hack it a bit.
-      if (authCookie.token.split(' ')[1]) {
-        token = authCookie.token.split(' ')[1]; // Bearer <token>
-      } else {
-        token = authCookie.token;
-      }
-
+    if (token) {
       // Look if token is in expired tokens, if so, throw 401
       mongoose.connect(connUri, { useNewUrlParser: true })
         .then(() => {

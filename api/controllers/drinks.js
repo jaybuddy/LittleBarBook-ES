@@ -96,9 +96,8 @@ const DrinkController = {
   readAll: (req, res) => {
     mongoose.connect(connUri, { useNewUrlParser: true })
       .then(() => {
+        let result;
         const { userId } = req.decoded;
-        let result = {};
-console.log(req);
         Drink.find({ userId })
           .then((drinks) => {
             // If we get nothing back. they have no drinks
@@ -107,7 +106,7 @@ console.log(req);
             } else {
               result = formatApiResponse(200, null, drinks);
             }
-            res.status(result.status).send(result);
+            res.status(result.status).send(result.data);
           })
           .catch(error => DrinkController.onPassthruError(res, error));
       })

@@ -1,10 +1,9 @@
 type Drink {
-    id: String!
+    _id: String
     name: String!
     slug: String!
     userId: String!
     bbId: String!
     description: String!
     ingredient: Ingredient!
-    user: User!
 }

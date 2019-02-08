@@ -1,6 +1,6 @@
 const environment = process.env.NODE_ENV; // development
 const cookieName = process.env.COOKIE_NAME;
-const cookieExp = process.env.COOKIE_EXPIRATION;
+const cookieExp = process.env.COOKIE_EXP;
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');

@@ -6,12 +6,21 @@ const Token = require('../models/tokens');
 const connUri = require('../lib/database');
 
 module.exports = {
+
+  /**
+   * removeBearer
+   * Utility method for removing bearer
+   */
+  removeBearer: authHeader => authHeader.split(' ').pop(),
+
   /**
    * validateToken
    * Method validates an incoming JWT
    */
   validateToken: (req, res, next) => {
-    const { token } = req.headers;
+    const { authorization: authHeader } = req.headers;
+    const token = module.exports.removeBearer(authHeader);
+
     let result;
     if (token) {
       // Look if token is in expired tokens, if so, throw 401

@@ -14,9 +14,6 @@ const tokenSchema = new Schema({
     type: Date,
     required: true,
   },
-},
-{
-  timestamps: true,
 });
 
 tokenSchema.index({ createdAt: 1 }, { expireAfterSeconds: 60 * 60 * 2 * 2 });

@@ -7,5 +7,5 @@ type Drink {
     createdAt: String
     updatedAt: String
     description: String!
-    ingredients: Ingredients
+    ingredients: Ingredient
 }

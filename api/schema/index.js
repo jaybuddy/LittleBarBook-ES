@@ -3,13 +3,12 @@ const glob = require('glob');
 const path = require('path');
 const fs = require('fs');
 
-// Import Types
 const typeDefs = glob.sync('**/types/*.graphql').map(filePath => fs.readFileSync(filePath, 'utf8'));
 const resolverFunctions = glob.sync('**/resolvers/*.js').map(filePath => (
-  { [path.basename(filePath, '.js')]: require(`./resolvers/${path.basename(filePath)}`)}
+  { [path.basename(filePath, '.js')]: require(`./resolvers/${path.basename(filePath)}`) }
 ));
 
-const resolvers = Object.assign.apply(Object, resolverFunctions);
+const resolvers = Object.assign(...resolverFunctions);
 
 module.exports = makeExecutableSchema({
   typeDefs,

@@ -11,7 +11,7 @@ module.exports = {
    * removeBearer
    * Utility method for removing bearer
    */
-  removeBearer: authHeader => authHeader.split(' ').pop(),
+  removeBearer: authHeader => authHeader.split(' ').pop() || '',
 
   /**
    * validateToken

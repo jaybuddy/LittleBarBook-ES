@@ -63,10 +63,10 @@ const UserController = {
   read: (req, res) => {
     mongoose.connect(connUri, { useNewUrlParser: true })
       .then(() => {
-        const { id } = req.decoded;
+        const { userId } = req.decoded;
         let result = {};
 
-        User.findOne({ _id: id })
+        User.findOne({ _id: userId })
           .then((user) => {
             if (!user) {
               result = formatApiResponse(500, {
@@ -76,7 +76,7 @@ const UserController = {
             } else {
               result = formatApiResponse(200, null, user);
             }
-            res.status(result.status).send(result);
+            res.status(result.status).send(result.data);
           })
           .catch((err) => {
             result = formatApiResponse(500, {

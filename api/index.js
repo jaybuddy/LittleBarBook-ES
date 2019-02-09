@@ -28,7 +28,7 @@ app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bunyanMiddleware({
-  obscureHeader: ['cookie', 'Authorization'],
+  excludeHeaders: ['cookie', 'authorization'],
   logger,
   verbose: false,
 }));

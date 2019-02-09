@@ -14,7 +14,7 @@ const drinkSchema = new Schema({
     unique: true,
   },
   slug: {
-    type: String,
+    type: 'String',
     slug: ['bbId', 'name'],
     unique: true,
   },
@@ -32,6 +32,9 @@ const drinkSchema = new Schema({
     type: 'String',
     trim: true,
   },
+},
+{
+  timestamps: true,
 });
 
 module.exports = mongoose.model('Drink', drinkSchema);

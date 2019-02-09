@@ -23,6 +23,9 @@ const ingredientSchema = new Schema({
     type: 'String',
     trim: true,
   },
+},
+{
+  timestamps: true,
 });
 
 module.exports = mongoose.model('Ingredient', ingredientSchema);

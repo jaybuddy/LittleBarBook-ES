@@ -4,6 +4,8 @@ type Drink {
     slug: String!
     userId: String!
     bbId: String!
+    createdAt: String
+    updatedAt: String
     description: String!
-    ingredient: Ingredient!
+    ingredients: Ingredients
 }

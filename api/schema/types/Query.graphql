@@ -1,5 +1,5 @@
 type Query {
     User: User!
     Drinks: [Drink]!
-    Ingredient: [Ingredient]
+    Ingredients: [Ingredient]
 }

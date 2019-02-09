@@ -40,6 +40,9 @@ const userSchema = new Schema({
     required: true,
     default: 'user',
   },
+},
+{
+  timestamps: true,
 });
 
 // encrypt password before save

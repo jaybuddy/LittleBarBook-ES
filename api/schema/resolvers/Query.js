@@ -2,6 +2,7 @@ const fetch = require('node-fetch');
 
 const baseUrl = 'http://localhost:3000/api/v1';
 
+
 const User = (parent, args, context) => fetch(`${baseUrl}/user`, {
   method: 'GET',
   headers: {
@@ -22,9 +23,14 @@ const Drinks = (parent, args, context) => fetch(`${baseUrl}/drinks`, {
  * @param {*} parent
  * @param {*} args
  */
-const Ingredient = (parent, args) => {
+const Ingredients = (parent, args, context) => {
   const { drinkId } = args;
-  return fetch(`${baseUrl}/ingredients?id=${drinkId}`, { method: 'GET' }).then(res => res.json());
+  return fetch(`${baseUrl}/ingredients?id=${drinkId}`, {
+    method: 'GET',
+    headers: {
+      authorization: context.authorization,
+    },
+  }).then(res => res.json());
 };
 
-module.exports = { User, Drinks, Ingredient };
+module.exports = { User, Drinks, Ingredients };

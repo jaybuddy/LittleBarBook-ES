@@ -11,7 +11,9 @@ module.exports = {
    * removeBearer
    * Utility method for removing bearer
    */
-  removeBearer: authHeader => authHeader.split(' ').pop() || '',
+  removeBearer: (authHeader) => {
+    return (authHeader) ? authHeader.split(' ').pop() || '' : '';
+  },
 
   /**
    * validateToken
@@ -52,7 +54,7 @@ module.exports = {
         });
     } else {
       result = {
-        error: 'Authentication error. Token required.',
+        error: 'Authentication error. No token provided.',
         status: 401,
       };
       res.status(401).send(result);

@@ -2,4 +2,5 @@ type Query {
     User: User!
     Drinks: [Drink]!
     Ingredients: [Ingredient]
+    Tags: [Tag]
 }

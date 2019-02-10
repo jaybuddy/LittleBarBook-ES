@@ -17,6 +17,17 @@ const Drinks = (parent, args, context) => fetch(`${baseUrl}/drinks`, {
   },
 }).then(res => res.json());
 
+const Tags = (parent, args, context) => {
+  const { drinkId } = args;
+  console.log("-----I AM HERE----------", drinkId);
+  return fetch(`${baseUrl}/tags?drinkId=${drinkId}`, {
+    method: 'GET',
+    headers: {
+      authorization: context.authorization,
+    },
+  }).then(res => res.json());
+};
+
 /**
  * Ingredient
  * The API query for the drink ingredients
@@ -33,4 +44,6 @@ const Ingredients = (parent, args, context) => {
   }).then(res => res.json());
 };
 
-module.exports = { User, Drinks, Ingredients };
+module.exports = {
+  User, Drinks, Ingredients, Tags,
+};

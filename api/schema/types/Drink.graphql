@@ -8,4 +8,5 @@ type Drink {
     updatedAt: String
     description: String!
     ingredients: Ingredient
+    tags: [Tag]
 }

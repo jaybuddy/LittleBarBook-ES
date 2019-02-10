@@ -16,6 +16,7 @@ produces:
 
 tags:
   - name: Drinks
+  - name: Tags
   - name: Ingredients
   - name: Users
 
@@ -152,6 +153,147 @@ paths:
       responses:
         200:
           description: Successfully deleted drink
+          schema:
+            $ref: "#/definitions/SuccessSchema"
+        401:
+          description: Authentication error
+          schema:
+            $ref: "#/definitions/AuthErrorSchema"
+        500:
+          description: Server error
+          schema:
+            $ref: "#/definitions/ServerErrorSchema"
+  
+  /tags: 
+    get:
+      tags:
+        - Tags
+      summary: Retrieves a list of the tags for a given drink
+      security:
+        - bearer: []
+      parameters:
+        - name: drinkId
+          in: query
+          description: The Id of the drink.
+          required: true
+          type: string
+      responses:
+        200:
+          description: Successfully fetch ingredients
+          schema:
+            $ref: "#/definitions/SuccessSchema"
+        401:
+          description: Authentication error
+          schema:
+            $ref: "#/definitions/AuthErrorSchema"
+        500:
+          description: Server error
+          schema:
+            $ref: "#/definitions/ServerErrorSchema"
+    
+            $ref: "#/definitions/SuccessSchema"
+
+  /tag: 
+    post:
+      tags:
+        - Tags
+      summary: Creates a new tag
+      security:
+        - bearer: []
+      parameters:
+        - name: name
+          in: formData
+          description: The name of the tag.
+          required: true
+          type: string
+        - name: drinkId
+          in: formData
+          description: A ID of the drink
+          required: true
+          type: string
+      responses:
+        200:
+          description: Successfully added tag
+          schema:
+            $ref: "#/definitions/SuccessSchema"
+        401:
+          description: Authentication error
+          schema:
+            $ref: "#/definitions/AuthErrorSchema"
+        500:
+          description: Server error
+          schema:
+            $ref: "#/definitions/ServerErrorSchema"
+    get:
+      tags:
+        - Tags
+      summary: Retrieves a single tag
+      security:
+        - bearer: []
+      parameters:
+        - name: id
+          in: query
+          description: The Id if the tag.
+          required: true
+          type: string
+      responses:
+        200:
+          description: Successfully retreived tag
+          schema:
+            $ref: "#/definitions/SuccessSchema"
+        401:
+          description: Authentication error
+          schema:
+            $ref: "#/definitions/AuthErrorSchema"
+        500:
+          description: Server error
+          schema:
+            $ref: "#/definitions/ServerErrorSchema"
+    patch:
+      tags:
+        - Tags
+      summary: Updates a tag
+      security:
+        - bearer: []
+      parameters:
+        - name: id
+          in: formData
+          description: The Id if the tag.
+          required: true
+          type: string
+        - name: name
+          in: formData
+          description: The name of the tag.
+          required: true
+          type: string
+      responses:
+        200:
+          description: Successfully updated tag
+          schema:
+            $ref: "#/definitions/SuccessSchema"
+        401:
+          description: Authentication error
+          schema:
+            $ref: "#/definitions/AuthErrorSchema"
+        500:
+          description: Server error
+          schema:
+            $ref: "#/definitions/ServerErrorSchema"
+    delete:
+      tags:
+        - Tags
+      summary: Deletes a tag
+      security:
+        - bearer: []
+      parameters:
+        - name: id
+          in: formData
+          description: The Id if the tag to delete.
+          required: true
+          type: string
+      responses:
+        200:
+          description: Successfully deleted tag
           schema:
             $ref: "#/definitions/SuccessSchema"
         401:

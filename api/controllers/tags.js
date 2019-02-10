@@ -23,9 +23,10 @@ const TagController = {
     mongoose.connect(connUri, { useNewUrlParser: true })
       .then(() => {
         const {
-          body: { name },
+          body: { name, drinkId },
+          decoded: { userId },
         } = req;
-        const tag = new Tag({ name });
+        const tag = new Tag({ name, drinkId, userId });
         let result = {};
         // Save the tag
         tag.save()
@@ -98,6 +99,7 @@ const TagController = {
           query: { drinkId },
           decoded: { userId },
         } = req;
+        console.log(req.query, req.decoded);
         Tag.find({ drinkId, userId })
           .then((tags) => {
             // If we get nothing back. they have no drinks

@@ -8,7 +8,6 @@ const tagSchema = new Schema({
     type: 'String',
     required: true,
     trim: true,
-    unique: true,
   },
   userId: {
     type: 'String',

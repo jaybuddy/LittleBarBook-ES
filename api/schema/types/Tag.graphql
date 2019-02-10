@@ -1,0 +1,6 @@
+type Tag {
+    _id: String
+    name: String!
+    createdAt: String
+    updatedAt: String
+}

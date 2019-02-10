@@ -1,0 +1,44 @@
+3 tables
+  - Users (For auth)
+    - id
+    - email
+    - password
+    - displayName
+    - role
+    - createdAt
+    - modifiedAt
+  - Events
+    - id
+    - userId
+    - description
+    - state (the data as a json string)
+    - createdAt
+    - modifiedAt
+  - Tokens
+    - id
+    - Token
+    - createdAt
+Actions
+- get latest state from events, clone, make mutation, validate, save
+
+When new user is creates. event is initialized with {}
+
+Models: 
+  - DB
+    - User
+    - Events
+    - Token
+  - Validation (for inside event)
+    - Drink
+    - Ingredient
+    - Tag
+
+Where to start. 
+  X 1. add delete all to tags
+  2. Add events Model
+  3. Add events Controller (create & read only)
+  4. Add events routes (create & read only)
+  5. Add events constants
+  6. Modify users schema
+  X 7. remove graphql for now
+  8. Update swaggerui

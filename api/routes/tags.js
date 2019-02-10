@@ -3,7 +3,8 @@ const { validateToken } = require('../lib/utils');
 
 module.exports = (router) => {
   router.route('/tags')
-    .get(validateToken, controller.readAll);
+    .get(validateToken, controller.readAll)
+    .delete(validateToken, controller.deleteAll);
 
   router.route('/tag')
     .get(validateToken, controller.read)

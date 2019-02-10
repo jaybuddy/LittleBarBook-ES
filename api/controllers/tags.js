@@ -179,6 +179,36 @@ const TagController = {
   },
 
   /**
+   * Delete all method
+   * Removes all the tags for a given drink
+   * @param {String} drinkId The id of the parent drink
+   */
+  deleteAll: (req, res) => {
+    mongoose.connect(connUri, { useNewUrlParser: true })
+      .then(() => {
+        const {
+          body: { drinkId },
+          decoded: { userId },
+        } = req;
+        let result = {};
+
+        Tag.deleteMany({ drinkId, userId })
+          .then((tags) => {
+            result = formatApiResponse(200, null, tags);
+            res.status(result.status).send(result);
+          })
+          .catch((error) => {
+            result = formatApiResponse(500, {
+              user: FAILED_DELETE_ERROR,
+              dev: error,
+            }, null);
+            res.status(result.status).send(result);
+          });
+      })
+      .catch(() => TagController.onNoConnection(res));
+  },
+
+  /**
    * onNoConnection
    * Helper function that sends the no connection error
    * @param {Object} res The response object

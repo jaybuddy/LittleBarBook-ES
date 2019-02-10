@@ -1,9 +1,0 @@
-type User {
-    id: String!
-    name: String!
-    bbId: String!
-    email: String!
-    role: String!
-    createdAt: String
-    updatedAt: String
-}

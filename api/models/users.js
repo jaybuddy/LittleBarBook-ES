@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
-const { randomHash } = require('../lib/utils');
 
 const environment = process.env.NODE_ENV;
 const stage = require('../config')[environment];
@@ -31,10 +30,6 @@ const userSchema = new Schema({
     required: true,
     trim: true,
   },
-  bbId: {
-    type: String,
-    trim: true,
-  },
   role: {
     type: 'String',
     required: true,
@@ -51,8 +46,6 @@ userSchema.pre('save', (next) => {
   if (!user.isModified || !user.isNew) { // don't rehash if it's an old user
     next();
   } else {
-    // Add the bbId
-    user.bbId = randomHash(5);
     // Hash password
     bcrypt.hash(user.password, stage.saltingRounds, (err, hash) => {
       if (err) {

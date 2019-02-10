@@ -11,9 +11,7 @@ module.exports = {
    * removeBearer
    * Utility method for removing bearer
    */
-  removeBearer: (authHeader) => {
-    return (authHeader) ? authHeader.split(' ').pop() || '' : '';
-  },
+  removeBearer: authHeader => ((authHeader) ? authHeader.split(' ').pop() || '' : ''),
 
   /**
    * validateToken
@@ -59,21 +57,5 @@ module.exports = {
       };
       res.status(401).send(result);
     }
-  },
-
-  /**
-   * randomHash
-   * Method generates a rondom has (currently used to generate a bbId)
-   * @param {Int} length Length of the hash
-   * @returns {String} A hash string.
-   */
-  randomHash: (length) => {
-    const possible = 'abcdefghijklmnopqrstuvwxyz0123456789';
-    let hash = '';
-
-    for (let i = 0; i < length; i++) {
-      hash += possible.charAt(Math.floor(Math.random() * possible.length));
-    }
-    return hash;
   },
 };

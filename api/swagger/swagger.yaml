@@ -4,7 +4,7 @@ swagger: '2.0'
 info:
   description: The backend API that handles database interaction for littlebarbook.com
   version: '1.0'
-  title: Little Bar Booke API
+  title: Little Bar Book (ES) API
 
 basePath: /api/v1
 
@@ -192,6 +192,31 @@ paths:
             $ref: "#/definitions/ServerErrorSchema"
     
             $ref: "#/definitions/SuccessSchema"
+    delete:
+      tags:
+        - Tags
+      summary: Deletes all tags from a drink
+      security:
+        - bearer: []
+      parameters:
+        - name: drinkId
+          in: formData
+          description: The Id if the drink whose tags we are to delete.
+          required: true
+          type: string
+      responses:
+        200:
+          description: Successfully deleted tags
+          schema:
+            $ref: "#/definitions/SuccessSchema"
+        401:
+          description: Authentication error
+          schema:
+            $ref: "#/definitions/AuthErrorSchema"
+        500:
+          description: Server error
+          schema:
+            $ref: "#/definitions/ServerErrorSchema"
 
   /tag: 
     post:

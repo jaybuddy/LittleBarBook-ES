@@ -8,6 +8,7 @@ const stage = require('../config')[environment];
 const connUri = require('../lib/database');
 const { formatApiResponse } = require('../lib/formatters');
 const User = require('../models/users');
+const Event = require('../models/events');
 const Token = require('../models/tokens');
 const {
   NOT_ADDED,
@@ -46,6 +47,12 @@ const UserController = {
                 dev: NOT_ADDED_DEV,
               }, {});
             } else {
+              const event = new Event({
+                userId: savedUser.id,
+                description: 'User created',
+                state: JSON.stringify({}),
+              });
+              event.save();
               result = formatApiResponse(201, null, user);
             }
             res.status(result.status).send(result);
@@ -124,18 +131,18 @@ const UserController = {
    * @returns {Object} The logged in user with JWT
    */
   login: (req, res) => {
-    const { name, password } = req.body;
+    const { email, password } = req.body;
     mongoose.connect(connUri, { useNewUrlParser: true })
       .then(() => {
         let result = {};
 
-        User.findOne({ name })
+        User.findOne({ email })
           .then((user) => {
             if (user) {
               bcrypt.compare(password, user.password)
                 .then((match) => {
                   if (match) {
-                    const payload = { username: user.name, userId: user.id, bbId: user.bbId };
+                    const payload = { username: user.name, userId: user.id, email };
                     const options = { expiresIn: stage.jwt.expires, issuer: stage.jwt.issuer };
                     const secret = process.env.JWT_SECRET;
                     const token = jwt.sign(payload, secret, options);

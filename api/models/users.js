@@ -6,15 +6,15 @@ const stage = require('../config')[environment];
 
 // schema maps to a collection
 const { Schema } = mongoose;
+
 const validateEmail = (email) => {
   const re = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
   return re.test(email);
 };
 
 const userSchema = new Schema({
-  name: {
+  displayName: {
     type: 'String',
-    required: true,
     trim: true,
     unique: true,
   },
@@ -28,7 +28,6 @@ const userSchema = new Schema({
   password: {
     type: 'String',
     required: true,
-    trim: true,
   },
   role: {
     type: 'String',
@@ -41,7 +40,7 @@ const userSchema = new Schema({
 });
 
 // encrypt password before save
-userSchema.pre('save', (next) => {
+userSchema.pre('save', function preSave(next) {
   const user = this;
   if (!user.isModified || !user.isNew) { // don't rehash if it's an old user
     next();

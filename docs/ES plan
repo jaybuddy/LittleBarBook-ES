@@ -35,9 +35,9 @@ Models:
 
 Where to start. 
   X 1. add delete all to tags
-  2. Add events Model
-  3. Add events Controller (create & read only)
-  4. Add events routes (create & read only)
+  X 2. Add events Model
+  X 3. Add events Controller (create & read only)
+  X 4. Add events routes (create & read only)
   5. Add events constants
   6. Modify users schema
   X 7. remove graphql for now

@@ -511,9 +511,9 @@ paths:
       security:
         - bearer: []
       parameters:
-        - name: name
+        - name: displayName
           in: formData
-          description: The username for the user.
+          description: The display for the user.
           required: true
           type: string
         - name: password
@@ -582,9 +582,9 @@ paths:
       security:
         - bearer: []
       parameters:
-        - name: name
+        - name: email
           in: formData
-          description: The username for the user.
+          description: The email address for the user.
           required: true
           type: string
         - name: password

@@ -38,7 +38,7 @@ Where to start.
   X 2. Add events Model
   X 3. Add events Controller (create & read only)
   X 4. Add events routes (create & read only)
-  5. Add events constants
-  6. Modify users schema
+  X 5. Add events constants
+  X 6. Modify users schema
   X 7. remove graphql for now
-  8. Update swaggerui
+  X 8. Update swaggerui

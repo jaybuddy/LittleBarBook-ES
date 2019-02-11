@@ -19,6 +19,7 @@ tags:
   - name: Tags
   - name: Ingredients
   - name: Users
+  - name: Events
 
 securityDefinitions:
   bearer:
@@ -612,6 +613,62 @@ paths:
       responses:
         200:
           description: Successfully logged out user
+          schema:
+            $ref: "#/definitions/SuccessSchema"
+        401:
+          description: Authentication error
+          schema:
+            $ref: "#/definitions/AuthErrorSchema"
+        500:
+          description: Server error
+          schema:
+            $ref: "#/definitions/ServerErrorSchema"
+
+  /event: 
+    post:
+      tags:
+        - Events
+      summary: Creates a new event
+      security:
+        - bearer: []
+      parameters:
+        - name: userId
+          in: formData
+          description: The user ID the event belongs to.
+          required: true
+          type: string
+        - name: drinkId
+          in: formData
+          description: The description of the event
+          required: true
+          type: string
+        - name: state
+          in: formData
+          description: The complete state tree... stringified
+          required: true
+          type: string
+      responses:
+        200:
+          description: Successfully added event
+          schema:
+            $ref: "#/definitions/SuccessSchema"
+        401:
+          description: Authentication error
+          schema:
+            $ref: "#/definitions/AuthErrorSchema"
+        500:
+          description: Server error
+          schema:
+            $ref: "#/definitions/ServerErrorSchema"
+    get:
+      tags:
+        - Events
+      summary: Retrieves current event
+      security:
+        - bearer: []
+      responses:
+        200:
+          description: Successfully fetched event
           schema:
             $ref: "#/definitions/SuccessSchema"
         401:

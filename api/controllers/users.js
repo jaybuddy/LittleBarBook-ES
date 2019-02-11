@@ -47,6 +47,7 @@ const UserController = {
                 dev: NOT_ADDED_DEV,
               }, {});
             } else {
+              // Set an initial state event.
               const event = new Event({
                 userId: savedUser.id,
                 description: 'User created',

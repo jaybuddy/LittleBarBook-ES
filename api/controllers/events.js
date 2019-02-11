@@ -1,15 +1,15 @@
-import { mongoose } from 'mongoose';
-import { Event } from '../models/drinks';
-import { formatApiResponse } from '../lib/formatters';
-import { connUri } from '../lib/database';
-import {
+const mongoose = require('mongoose');
+const Events = require('../models/events');
+const { formatApiResponse } = require('../lib/formatters');
+const connUri = require('../lib/database');
+const {
   NOT_ADDED,
   NOT_ADDED_DEV,
   NOT_FOUND_ERROR,
   NOT_FOUND_ERROR_DEV,
   ID_NOT_PROVIDED,
   FAILED_TO_CONNECT,
-} from '../constants/events';
+} = require('../constants/events');
 
 const EventController = {
   /**
@@ -24,7 +24,7 @@ const EventController = {
           decoded: { userId },
           body: { description, state },
         } = req;
-        const event = new Event({
+        const event = new Events({
           userId, description, state,
         });
         let result = {};
@@ -60,7 +60,7 @@ const EventController = {
         let result = {};
 
         if (userId) {
-          Event.findOne({ userId }, {}, { createdAt: -1 })
+          Events.findOne({ userId }, 'state', { createdAt: -1 })
             .then((event) => {
               // If we get nothing back. it wasnt saved
               if (!event) {

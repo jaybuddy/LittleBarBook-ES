@@ -42,3 +42,7 @@ Where to start.
   X 6. Modify users schema
   X 7. remove graphql for now
   X 8. Update swaggerui
+
+Next steps.
+possibly look at resolvePath
+convert Drink CRUD operations. 

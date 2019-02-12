@@ -1,14 +1,11 @@
-const mongoose = require('mongoose');
 const Events = require('../models/events');
 const { formatApiResponse } = require('../lib/formatters');
-const connUri = require('../lib/database');
 const {
   NOT_ADDED,
   NOT_ADDED_DEV,
   NOT_FOUND_ERROR,
   NOT_FOUND_ERROR_DEV,
   ID_NOT_PROVIDED,
-  FAILED_TO_CONNECT,
 } = require('../constants/events');
 
 const EventController = {
@@ -18,32 +15,28 @@ const EventController = {
    * @returns {Object} The saved event data.
    */
   create: (req, res) => {
-    mongoose.connect(connUri, { useNewUrlParser: true })
-      .then(() => {
-        const {
-          decoded: { userId },
-          body: { description, state },
-        } = req;
-        const event = new Events({
-          userId, description, state,
-        });
-        let result = {};
+    const {
+      decoded: { userId },
+      body: { description, state },
+    } = req;
+    const event = new Events({
+      userId, description, state,
+    });
+    let result = {};
 
-        event.save()
-          .then((savedEvent) => {
-            if (!savedEvent) {
-              result = formatApiResponse(500, {
-                user: NOT_ADDED,
-                dev: NOT_ADDED_DEV,
-              }, {});
-            } else {
-              result = formatApiResponse(201, null, savedEvent);
-            }
-            res.status(result.status).send(result);
-          })
-          .catch(error => EventController.onPassthruError(res, error));
+    event.save()
+      .then((savedEvent) => {
+        if (!savedEvent) {
+          result = formatApiResponse(500, {
+            user: NOT_ADDED,
+            dev: NOT_ADDED_DEV,
+          }, {});
+        } else {
+          result = formatApiResponse(201, null, savedEvent);
+        }
+        res.status(result.status).send(result);
       })
-      .catch(() => EventController.onNoConnection(res));
+      .catch(error => EventController.onPassthruError(res, error));
   },
 
   /**
@@ -52,50 +45,33 @@ const EventController = {
    * returns {object} API call results
    */
   read: (req, res) => {
-    mongoose.connect(connUri, { useNewUrlParser: true })
-      .then(() => {
-        const {
-          decoded: { userId },
-        } = req;
-        let result = {};
+    const {
+      decoded: { userId },
+    } = req;
+    let result = {};
 
-        if (userId) {
-          Events.findOne({ userId }, 'state', { createdAt: -1 })
-            .then((event) => {
-              // If we get nothing back. it wasnt saved
-              if (!event) {
-                result = formatApiResponse(500, {
-                  user: NOT_FOUND_ERROR,
-                  dev: NOT_FOUND_ERROR_DEV,
-                }, {});
-              } else {
-                result = formatApiResponse(200, null, event);
-              }
-              res.status(result.status).send(result);
-            })
-            .catch(error => EventController.onPassthruError(res, error));
-        } else {
-          result = formatApiResponse(500, {
-            user: NOT_FOUND_ERROR,
-            dev: ID_NOT_PROVIDED,
-          }, null);
+    if (userId) {
+      Events.findOne({ userId }, 'state', { createdAt: -1 })
+        .then((event) => {
+          // If we get nothing back. it wasnt saved
+          if (!event) {
+            result = formatApiResponse(500, {
+              user: NOT_FOUND_ERROR,
+              dev: NOT_FOUND_ERROR_DEV,
+            }, {});
+          } else {
+            result = formatApiResponse(200, null, event);
+          }
           res.status(result.status).send(result);
-        }
-      })
-      .catch(() => EventController.onNoConnection(res));
-  },
-
-  /**
-   * onNoConnection
-   * Helper function that sends the no connection error
-   * @param {Object} res The response object
-   */
-  onNoConnection: (res) => {
-    const result = formatApiResponse(500, {
-      user: FAILED_TO_CONNECT,
-      dev: FAILED_TO_CONNECT,
-    }, null);
-    res.status(result.status).send(result);
+        })
+        .catch(error => EventController.onPassthruError(res, error));
+    } else {
+      result = formatApiResponse(500, {
+        user: NOT_FOUND_ERROR,
+        dev: ID_NOT_PROVIDED,
+      }, null);
+      res.status(result.status).send(result);
+    }
   },
 
   /**

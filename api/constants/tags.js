@@ -9,7 +9,5 @@ module.exports = {
   // Update
   FAILED_UPDATE_ERROR: 'Whoops! we were upable to update your tag, please try again',
   FAILED_DELETE_ERROR: 'Whoop! we could not delete your tag, please try again.',
-  // Connection
-  FAILED_TO_CONNECT: 'Failed to connect to the database. :(',
   AUTHENTICATION_ERROR: 'Authentication error',
 };

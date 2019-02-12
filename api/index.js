@@ -5,16 +5,17 @@ const cookieParser = require('cookie-parser');
 const swaggerUi = require('swagger-ui-express');
 const YAML = require('yamljs');
 const bunyanMiddleware = require('bunyan-middleware');
+const logger = require('./lib/logger').getLogger();
 
 const swaggerDocument = YAML.load('./swagger/swagger.yaml');
 const environment = process.env.NODE_ENV;
 const stage = require('./config')[environment];
 
+// Connect to DB, handle DB events
+require('./lib/connect');
+
 // API Routes
 const routes = require('./routes/index.js');
-
-// Setup logger
-const logger = require('./lib/logger');
 
 // Startup express
 const app = express();

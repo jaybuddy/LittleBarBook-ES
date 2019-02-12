@@ -1,7 +1,5 @@
-const mongoose = require('mongoose');
 const Ingredient = require('../models/ingredients');
 const { formatApiResponse } = require('../lib/formatters');
-const connUri = require('../lib/database');
 const {
   NOT_ADDED,
   NOT_ADDED_DEV,
@@ -10,7 +8,6 @@ const {
   ID_NOT_PROVIDED,
   FAILED_UPDATE_ERROR,
   FAILED_DELETE_ERROR,
-  FAILED_TO_CONNECT,
 } = require('../constants/ingredients');
 
 const IngredientController = {
@@ -20,31 +17,27 @@ const IngredientController = {
    * @returns {Object} The saved ingredient data.
    */
   create: (req, res) => {
-    mongoose.connect(connUri, { useNewUrlParser: true })
-      .then(() => {
-        const {
-          decoded: { userId },
-          body: { name, drinkId, notes },
-        } = req;
-        const ingredient = new Ingredient({
-          name, userId, drinkId, notes,
-        });
-        let result = {};
-        ingredient.save()
-          .then((savedIngredient) => {
-            if (!savedIngredient) {
-              result = formatApiResponse(500, {
-                user: NOT_ADDED,
-                dev: NOT_ADDED_DEV,
-              }, {});
-            } else {
-              result = formatApiResponse(201, null, savedIngredient);
-            }
-            res.status(result.status).send(result);
-          })
-          .catch(error => IngredientController.onPassthruError(res, error));
+    const {
+      decoded: { userId },
+      body: { name, drinkId, notes },
+    } = req;
+    const ingredient = new Ingredient({
+      name, userId, drinkId, notes,
+    });
+    let result = {};
+    ingredient.save()
+      .then((savedIngredient) => {
+        if (!savedIngredient) {
+          result = formatApiResponse(500, {
+            user: NOT_ADDED,
+            dev: NOT_ADDED_DEV,
+          }, {});
+        } else {
+          result = formatApiResponse(201, null, savedIngredient);
+        }
+        res.status(result.status).send(result);
       })
-      .catch(() => IngredientController.onNoConnection(res));
+      .catch(error => IngredientController.onPassthruError(res, error));
   },
 
   /**
@@ -53,38 +46,34 @@ const IngredientController = {
    * returns {object} API call results
    */
   read: (req, res) => {
-    mongoose.connect(connUri, { useNewUrlParser: true })
-      .then(() => {
-        const {
-          query: { id },
-          decoded: { userId },
-        } = req;
-        let result = {};
+    const {
+      query: { id },
+      decoded: { userId },
+    } = req;
+    let result = {};
 
-        if (id) {
-          Ingredient.findOne({ _id: id, userId })
-            .then((ingredient) => {
-              // If we get nothing back. it wasnt saved
-              if (!ingredient) {
-                result = formatApiResponse(500, {
-                  user: NOT_FOUND_ERROR,
-                  dev: NOT_FOUND_ERROR_DEV,
-                }, {});
-              } else {
-                result = formatApiResponse(200, null, ingredient);
-              }
-              res.status(result.status).send(result);
-            })
-            .catch(error => IngredientController.onPassthruError(res, error));
-        } else {
-          result = formatApiResponse(500, {
-            user: NOT_FOUND_ERROR,
-            dev: ID_NOT_PROVIDED,
-          }, null);
+    if (id) {
+      Ingredient.findOne({ _id: id, userId })
+        .then((ingredient) => {
+          // If we get nothing back. it wasnt saved
+          if (!ingredient) {
+            result = formatApiResponse(500, {
+              user: NOT_FOUND_ERROR,
+              dev: NOT_FOUND_ERROR_DEV,
+            }, {});
+          } else {
+            result = formatApiResponse(200, null, ingredient);
+          }
           res.status(result.status).send(result);
-        }
-      })
-      .catch(() => IngredientController.onNoConnection(res));
+        })
+        .catch(error => IngredientController.onPassthruError(res, error));
+    } else {
+      result = formatApiResponse(500, {
+        user: NOT_FOUND_ERROR,
+        dev: ID_NOT_PROVIDED,
+      }, null);
+      res.status(result.status).send(result);
+    }
   },
 
   /**
@@ -93,27 +82,23 @@ const IngredientController = {
    * @returns {Object} All the drinks saved ingredients.
    */
   readAll: (req, res) => {
-    mongoose.connect(connUri, { useNewUrlParser: true })
-      .then(() => {
-        const {
-          query: { id },
-          decoded: { userId },
-        } = req;
-        let result = {};
+    const {
+      query: { id },
+      decoded: { userId },
+    } = req;
+    let result = {};
 
-        Ingredient.find({ drinkId: id, userId })
-          .then((ingredients) => {
-            // If we get nothing back. the drink has no ingredients
-            if (!ingredients) {
-              result = formatApiResponse(200, null, {});
-            } else {
-              result = formatApiResponse(200, null, ingredients);
-            }
-            res.status(result.status).send(result);
-          })
-          .catch(error => IngredientController.onPassthruError(res, error));
+    Ingredient.find({ drinkId: id, userId })
+      .then((ingredients) => {
+        // If we get nothing back. the drink has no ingredients
+        if (!ingredients) {
+          result = formatApiResponse(200, null, {});
+        } else {
+          result = formatApiResponse(200, null, ingredients);
+        }
+        res.status(result.status).send(result);
       })
-      .catch(() => IngredientController.onNoConnection(res));
+      .catch(error => IngredientController.onPassthruError(res, error));
   },
 
   /**
@@ -123,29 +108,25 @@ const IngredientController = {
    * @returns {Object} The updated ingredient
    */
   update: (req, res) => {
-    mongoose.connect(connUri, { useNewUrlParser: true })
-      .then(() => {
-        const {
-          body: { id },
-          decoded: { userId },
-        } = req;
-        let result = {};
-        req.body.userId = userId;
+    const {
+      body: { id },
+      decoded: { userId },
+    } = req;
+    let result = {};
+    req.body.userId = userId;
 
-        Ingredient.findOneAndUpdate({ _id: id, userId }, req.body, { new: true })
-          .then((ingredient) => {
-            result = formatApiResponse(201, null, ingredient);
-            res.status(result.status).send(result);
-          })
-          .catch((error) => {
-            result = formatApiResponse(500, {
-              user: FAILED_UPDATE_ERROR,
-              dev: error,
-            }, null);
-            res.status(result.status).send(result);
-          });
+    Ingredient.findOneAndUpdate({ _id: id, userId }, req.body, { new: true })
+      .then((ingredient) => {
+        result = formatApiResponse(201, null, ingredient);
+        res.status(result.status).send(result);
       })
-      .catch(() => IngredientController.onNoConnection(res));
+      .catch((error) => {
+        result = formatApiResponse(500, {
+          user: FAILED_UPDATE_ERROR,
+          dev: error,
+        }, null);
+        res.status(result.status).send(result);
+      });
   },
 
   /**
@@ -155,28 +136,24 @@ const IngredientController = {
    * @retuns {Object} The name and ID of the deleted drink
    */
   delete: (req, res) => {
-    mongoose.connect(connUri, { useNewUrlParser: true })
-      .then(() => {
-        const {
-          body: { id },
-          decoded: { userId },
-        } = req;
-        let result = {};
+    const {
+      body: { id },
+      decoded: { userId },
+    } = req;
+    let result = {};
 
-        Ingredient.findOneAndDelete({ _id: id, userId }, { select: ['name', 'id'] })
-          .then((ingredient) => {
-            result = formatApiResponse(200, null, ingredient);
-            res.status(result.status).send(result);
-          })
-          .catch((error) => {
-            result = formatApiResponse(500, {
-              user: FAILED_DELETE_ERROR,
-              dev: error,
-            }, null);
-            res.status(result.status).send(result);
-          });
+    Ingredient.findOneAndDelete({ _id: id, userId }, { select: ['name', 'id'] })
+      .then((ingredient) => {
+        result = formatApiResponse(200, null, ingredient);
+        res.status(result.status).send(result);
       })
-      .catch(() => IngredientController.onNoConnection(res));
+      .catch((error) => {
+        result = formatApiResponse(500, {
+          user: FAILED_DELETE_ERROR,
+          dev: error,
+        }, null);
+        res.status(result.status).send(result);
+      });
   },
 
   /**
@@ -185,41 +162,24 @@ const IngredientController = {
    * @param {String} drinkId The id of the parent drink
    */
   deleteAll: (req, res) => {
-    mongoose.connect(connUri, { useNewUrlParser: true })
-      .then(() => {
-        const {
-          body: { drinkId },
-          decoded: { userId },
-        } = req;
-        let result = {};
+    const {
+      body: { drinkId },
+      decoded: { userId },
+    } = req;
+    let result = {};
 
-        Ingredient.deleteMany({ drinkId, userId })
-          .then((ingredient) => {
-            result = formatApiResponse(200, null, ingredient);
-            res.status(result.status).send(result);
-          })
-          .catch((error) => {
-            result = formatApiResponse(500, {
-              user: FAILED_DELETE_ERROR,
-              dev: error,
-            }, null);
-            res.status(result.status).send(result);
-          });
+    Ingredient.deleteMany({ drinkId, userId })
+      .then((ingredient) => {
+        result = formatApiResponse(200, null, ingredient);
+        res.status(result.status).send(result);
       })
-      .catch(() => IngredientController.onNoConnection(res));
-  },
-
-  /**
-   * onNoConnection
-   * Helper function that sends the no connection error
-   * @param {Object} res The response object
-   */
-  onNoConnection: (res) => {
-    const result = formatApiResponse(500, {
-      user: FAILED_TO_CONNECT,
-      dev: FAILED_TO_CONNECT,
-    }, null);
-    res.status(result.status).send(result);
+      .catch((error) => {
+        result = formatApiResponse(500, {
+          user: FAILED_DELETE_ERROR,
+          dev: error,
+        }, null);
+        res.status(result.status).send(result);
+      });
   },
 
   /**

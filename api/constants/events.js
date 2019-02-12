@@ -5,7 +5,5 @@ module.exports = {
   // Read
   NOT_FOUND_ERROR: 'The event you were looking for was not found',
   NOT_FOUND_ERROR_DEV: 'In the events controller, read method, no event is being returned from the (save) call.',
-  // Connection
-  FAILED_TO_CONNECT: 'Failed to connect to the database. :(',
   AUTHENTICATION_ERROR: 'Authentication error',
 };

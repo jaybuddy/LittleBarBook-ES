@@ -1,11 +1,9 @@
 const environment = process.env.NODE_ENV; // development
 const cookieName = process.env.COOKIE_NAME;
 const cookieExp = process.env.COOKIE_EXP;
-const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const stage = require('../config')[environment];
-const connUri = require('../lib/database');
 const { formatApiResponse } = require('../lib/formatters');
 const User = require('../models/users');
 const Event = require('../models/events');
@@ -16,7 +14,6 @@ const {
   NOT_FOUND_ERROR,
   NOT_FOUND_ERROR_DEV,
   FAILED_UPDATE_ERROR,
-  FAILED_TO_CONNECT,
   AUTHENTICATION_ERROR,
 } = require('../constants/users');
 const {
@@ -34,33 +31,30 @@ const UserController = {
    * @returns {Object} The users registered information
    */
   create: (req, res) => {
-    mongoose.connect(connUri, { useNewUrlParser: true })
-      .then(() => {
-        const { name, password, email } = req.body;
-        const user = new User({ name, password, email });
-        let result = {};
-        user.save()
-          .then((savedUser) => {
-            if (!savedUser) {
-              result = formatApiResponse(500, {
-                user: NOT_ADDED,
-                dev: NOT_ADDED_DEV,
-              }, {});
-            } else {
-              // Set an initial state event.
-              const event = new Event({
-                userId: savedUser.id,
-                description: 'User created',
-                state: JSON.stringify({}),
-              });
-              event.save();
-              result = formatApiResponse(201, null, user);
-            }
-            res.status(result.status).send(result);
-          })
-          .catch(error => UserController.onPassthruError(res, error));
+    const { name, password, email } = req.body;
+    const user = new User({ name, password, email });
+    let result = {};
+
+    user.save()
+      .then((savedUser) => {
+        if (!savedUser) {
+          result = formatApiResponse(500, {
+            user: NOT_ADDED,
+            dev: NOT_ADDED_DEV,
+          }, {});
+        } else {
+          // Set an initial state event.
+          const event = new Event({
+            userId: savedUser.id,
+            description: 'User created',
+            state: JSON.stringify({}),
+          });
+          event.save();
+          result = formatApiResponse(201, null, user);
+        }
+        res.status(result.status).send(result);
       })
-      .catch(() => UserController.onNoConnection(res));
+      .catch(error => UserController.onPassthruError(res, error));
   },
 
   /**
@@ -69,32 +63,28 @@ const UserController = {
    * @returns {Object} Your user data
    */
   read: (req, res) => {
-    mongoose.connect(connUri, { useNewUrlParser: true })
-      .then(() => {
-        const { userId } = req.decoded;
-        let result = {};
+    const { userId } = req.decoded;
+    let result = {};
 
-        User.findOne({ _id: userId })
-          .then((user) => {
-            if (!user) {
-              result = formatApiResponse(500, {
-                user: NOT_FOUND_ERROR,
-                dev: NOT_FOUND_ERROR_DEV,
-              }, {});
-            } else {
-              result = formatApiResponse(200, null, user);
-            }
-            res.status(result.status).send(result.data);
-          })
-          .catch((err) => {
-            result = formatApiResponse(500, {
-              user: NOT_FOUND_ERROR,
-              dev: err,
-            }, null);
-            res.status(result.status).send(result);
-          });
+    User.findOne({ _id: userId })
+      .then((user) => {
+        if (!user) {
+          result = formatApiResponse(500, {
+            user: NOT_FOUND_ERROR,
+            dev: NOT_FOUND_ERROR_DEV,
+          }, {});
+        } else {
+          result = formatApiResponse(200, null, user);
+        }
+        res.status(result.status).send(result.data);
       })
-      .catch(() => UserController.onNoConnection(res));
+      .catch((err) => {
+        result = formatApiResponse(500, {
+          user: NOT_FOUND_ERROR,
+          dev: err,
+        }, null);
+        res.status(result.status).send(result);
+      });
   },
 
   /**
@@ -103,25 +93,21 @@ const UserController = {
    * @return {Object} The updates user.
    */
   update: (req, res) => {
-    mongoose.connect(connUri, { useNewUrlParser: true })
-      .then(() => {
-        const { id } = req.decoded;
-        let result = {};
+    const { id } = req.decoded;
+    let result = {};
 
-        User.findOneAndUpdate({ _id: id }, req.body, { new: true })
-          .then((user) => {
-            result = formatApiResponse(200, null, user);
-            res.status(result.status).send(result);
-          })
-          .catch((err) => {
-            result = formatApiResponse(500, {
-              user: FAILED_UPDATE_ERROR,
-              dev: err,
-            }, null);
-            res.status(result.status).send(result);
-          });
+    User.findOneAndUpdate({ _id: id }, req.body, { new: true })
+      .then((user) => {
+        result = formatApiResponse(200, null, user);
+        res.status(result.status).send(result);
       })
-      .catch(() => UserController.onNoConnection(res));
+      .catch((err) => {
+        result = formatApiResponse(500, {
+          user: FAILED_UPDATE_ERROR,
+          dev: err,
+        }, null);
+        res.status(result.status).send(result);
+      });
   },
 
   /**
@@ -133,48 +119,44 @@ const UserController = {
    */
   login: (req, res) => {
     const { email, password } = req.body;
-    mongoose.connect(connUri, { useNewUrlParser: true })
-      .then(() => {
-        let result = {};
+    let result = {};
 
-        User.findOne({ email })
-          .then((user) => {
-            if (user) {
-              bcrypt.compare(password, user.password)
-                .then((match) => {
-                  if (match) {
-                    const payload = { username: user.name, userId: user.id, email };
-                    const options = { expiresIn: stage.jwt.expires, issuer: stage.jwt.issuer };
-                    const secret = process.env.JWT_SECRET;
-                    const token = jwt.sign(payload, secret, options);
+    User.findOne({ email })
+      .then((user) => {
+        if (user) {
+          bcrypt.compare(password, user.password)
+            .then((match) => {
+              if (match) {
+                const payload = { username: user.name, userId: user.id, email };
+                const options = { expiresIn: stage.jwt.expires, issuer: stage.jwt.issuer };
+                const secret = process.env.JWT_SECRET;
+                const token = jwt.sign(payload, secret, options);
 
-                    // Set the token in a cookie.
-                    res.cookie(cookieName, { token }, {
-                      httpOnly: true,
-                      maxAge: cookieExp,
-                    });
+                // Set the token in a cookie.
+                res.cookie(cookieName, { token }, {
+                  httpOnly: true,
+                  maxAge: cookieExp,
+                });
 
-                    result = formatApiResponse(201, null, user);
-                  } else {
-                    result = formatApiResponse(401, {
-                      user: AUTHENTICATION_ERROR,
-                      dev: AUTHENTICATION_ERROR,
-                    }, null);
-                  }
-                  res.status(result.status).send(result);
-                })
-                .catch(error => UserController.onPassthruError(res, error));
-            } else {
-              result = formatApiResponse(500, {
-                user: NOT_FOUND_ERROR,
-                dev: NOT_FOUND_ERROR_DEV,
-              }, {});
+                result = formatApiResponse(201, null, user);
+              } else {
+                result = formatApiResponse(401, {
+                  user: AUTHENTICATION_ERROR,
+                  dev: AUTHENTICATION_ERROR,
+                }, null);
+              }
               res.status(result.status).send(result);
-            }
-          })
-          .catch(error => UserController.onPassthruError(res, error));
+            })
+            .catch(error => UserController.onPassthruError(res, error));
+        } else {
+          result = formatApiResponse(500, {
+            user: NOT_FOUND_ERROR,
+            dev: NOT_FOUND_ERROR_DEV,
+          }, {});
+          res.status(result.status).send(result);
+        }
       })
-      .catch(() => UserController.onNoConnection(res));
+      .catch(error => UserController.onPassthruError(res, error));
   },
 
   /**
@@ -183,44 +165,27 @@ const UserController = {
    */
   logout: (req, res) => {
     // Add the token to expired Tokens
-    mongoose.connect(connUri, { useNewUrlParser: true })
-      .then(() => {
-        const { token } = req.cookies[cookieName];
-        const newToken = new Token({
-          token,
-          createdAt: new Date(),
-        });
-        let result = {};
+    const { token } = req.cookies[cookieName];
+    const newToken = new Token({
+      token,
+      createdAt: new Date(),
+    });
+    let result = {};
 
-        newToken.save()
-          .then((savedToken) => {
-            if (!savedToken) {
-              result = formatApiResponse(500, {
-                user: NOT_ADDED_T,
-                dev: NOT_ADDED_DEV_T,
-              }, {});
-            } else {
-              res.clearCookie(cookieName);
-              result = formatApiResponse(200, null, savedToken);
-            }
-            res.status(result.status).send(result);
-          })
-          .catch(error => UserController.onPassthruError(res, error));
+    newToken.save()
+      .then((savedToken) => {
+        if (!savedToken) {
+          result = formatApiResponse(500, {
+            user: NOT_ADDED_T,
+            dev: NOT_ADDED_DEV_T,
+          }, {});
+        } else {
+          res.clearCookie(cookieName);
+          result = formatApiResponse(200, null, savedToken);
+        }
+        res.status(result.status).send(result);
       })
-      .catch(() => UserController.onNoConnection(res));
-  },
-
-  /**
-   * onNoConnection
-   * Helper function that sends the no connection error
-   * @param {Object} res The response object
-   */
-  onNoConnection: (res) => {
-    const result = formatApiResponse(500, {
-      user: FAILED_TO_CONNECT,
-      dev: FAILED_TO_CONNECT,
-    }, null);
-    res.status(result.status).send(result);
+      .catch(error => UserController.onPassthruError(res, error));
   },
 
   /**

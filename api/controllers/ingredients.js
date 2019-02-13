@@ -1,14 +1,8 @@
+const logger = require('../lib/logger').getLogger();
+const Events = require('../models/events');
 const Ingredient = require('../models/ingredients');
 const { formatApiResponse } = require('../lib/formatters');
-const {
-  NOT_ADDED,
-  NOT_ADDED_DEV,
-  NOT_FOUND_ERROR,
-  NOT_FOUND_ERROR_DEV,
-  ID_NOT_PROVIDED,
-  FAILED_UPDATE_ERROR,
-  FAILED_DELETE_ERROR,
-} = require('../constants/ingredients');
+const { NOT_ADDED } = require('../constants/ingredients');
 
 const IngredientController = {
   /**
@@ -21,84 +15,70 @@ const IngredientController = {
       decoded: { userId },
       body: { name, drinkId, notes },
     } = req;
+
     const ingredient = new Ingredient({
       name, userId, drinkId, notes,
     });
-    let result = {};
-    ingredient.save()
-      .then((savedIngredient) => {
-        if (!savedIngredient) {
-          result = formatApiResponse(500, {
-            user: NOT_ADDED,
-            dev: NOT_ADDED_DEV,
-          }, {});
-        } else {
-          result = formatApiResponse(201, null, savedIngredient);
-        }
+
+    let result;
+
+    // Validate the date being sent against the defined model
+    ingredient.validate((err) => {
+      if (err) {
+        result = formatApiResponse(500, err, {});
         res.status(result.status).send(result);
-      })
-      .catch(error => IngredientController.onPassthruError(res, error));
-  },
+      }
+    });
 
-  /**
-   * Read Ingredient Method
-   * @param {String} Id The id to lookup the ingredient.
-   * returns {object} API call results
-   */
-  read: (req, res) => {
-    const {
-      query: { id },
-      decoded: { userId },
-    } = req;
-    let result = {};
+    // Grab the latest event object
+    IngredientController.getEvent(userId)
+      .then((foundEvent) => {
+        // Check if we have a drinks array
+        if (foundEvent) {
+          const drinksArray = JSON.parse(foundEvent.state).Drinks || [];
 
-    if (id) {
-      Ingredient.findOne({ _id: id, userId })
-        .then((ingredient) => {
-          // If we get nothing back. it wasnt saved
-          if (!ingredient) {
-            result = formatApiResponse(500, {
-              user: NOT_FOUND_ERROR,
-              dev: NOT_FOUND_ERROR_DEV,
-            }, {});
-          } else {
-            result = formatApiResponse(200, null, ingredient);
+          // If they dont have any drink, dont let them add an ingredient
+          if (drinksArray.length < 0) {
+            result = formatApiResponse(500, 'You do not have any drinks', {});
+            res.status(result.status).send(result);
           }
-          res.status(result.status).send(result);
-        })
-        .catch(error => IngredientController.onPassthruError(res, error));
-    } else {
-      result = formatApiResponse(500, {
-        user: NOT_FOUND_ERROR,
-        dev: ID_NOT_PROVIDED,
-      }, null);
-      res.status(result.status).send(result);
-    }
-  },
 
-  /**
-   * ReadAll Ingredients Method
-   * Grabs all of a ingredients for a given drink id
-   * @returns {Object} All the drinks saved ingredients.
-   */
-  readAll: (req, res) => {
-    const {
-      query: { id },
-      decoded: { userId },
-    } = req;
-    let result = {};
+          const newState = {
+            Drinks: drinksArray.map((drink) => {
+              // Iterate through to find the right drink
+              if (drink._id === drinkId) {
+                const ingredients = drink.Ingredients || [];
+                return {
+                  ...drink,
+                  Ingredients: [ingredient, ...ingredients],
+                };
+              }
+              return drink;
+            }),
+          };
 
-    Ingredient.find({ drinkId: id, userId })
-      .then((ingredients) => {
-        // If we get nothing back. the drink has no ingredients
-        if (!ingredients) {
-          result = formatApiResponse(200, null, {});
+          // Create and Save the new event.
+          const newEvent = new Events({
+            userId,
+            description: `Added new ingredient: ${name}`,
+            state: JSON.stringify(newState),
+          });
+          newEvent.save()
+            .then((savedEvent) => {
+              if (savedEvent) {
+                result = formatApiResponse(201, null, savedEvent);
+                logger.trace(`New ingredient event was successfully added: ${newEvent}`);
+              } else {
+                result = formatApiResponse(500, NOT_ADDED, {});
+                logger.trace(`New ingredient event was not added: ${newEvent}`);
+              }
+              console.log(result);
+              res.status(result.status).send(result);
+            });
         } else {
-          result = formatApiResponse(200, null, ingredients);
+          logger.error('No events for this user. This is bad');
         }
-        res.status(result.status).send(result);
-      })
-      .catch(error => IngredientController.onPassthruError(res, error));
+      });
   },
 
   /**
@@ -140,58 +120,62 @@ const IngredientController = {
       body: { id },
       decoded: { userId },
     } = req;
+
     let result = {};
 
-    Ingredient.findOneAndDelete({ _id: id, userId }, { select: ['name', 'id'] })
-      .then((ingredient) => {
-        result = formatApiResponse(200, null, ingredient);
-        res.status(result.status).send(result);
-      })
-      .catch((error) => {
-        result = formatApiResponse(500, {
-          user: FAILED_DELETE_ERROR,
-          dev: error,
-        }, null);
-        res.status(result.status).send(result);
+    IngredientController.getEvent(userId)
+      .then((foundEvent) => {
+        if (foundEvent) {
+          const drinksArray = JSON.parse(foundEvent.state).Drinks || [];
+          const newState = {
+            Drinks: drinksArray.map((drink) => {
+              if (drink.Ingredients) {
+                return {
+                  ...drink,
+                  Ingredients: drink.Ingredients.filter(ingredient => ingredient._id !== id),
+                };
+              }
+              return drink;
+            }),
+          };
+
+          // Create and Save the new event.
+          const newEvent = new Events({
+            userId,
+            description: `Removed ingredient: ${id}`,
+            state: JSON.stringify(newState),
+          });
+          newEvent.save()
+            .then((savedEvent) => {
+              if (savedEvent) {
+                result = formatApiResponse(201, null, savedEvent);
+                logger.trace(`Remove ingredient event was successfully added: ${newEvent}`);
+              } else {
+                result = formatApiResponse(500, NOT_ADDED, {});
+                logger.trace(`Remove ingredient event was not added: ${newEvent}`);
+              }
+              res.status(result.status).send(result);
+            });
+        } else {
+          logger.error('No events for this user. This is bad');
+        }
       });
+
+    // Ingredient.findOneAndDelete({ _id: id, userId }, { select: ['name', 'id'] })
+    //   .then((ingredient) => {
+    //     result = formatApiResponse(200, null, ingredient);
+    //     res.status(result.status).send(result);
+    //   })
+    //   .catch((error) => {
+    //     result = formatApiResponse(500, {
+    //       user: FAILED_DELETE_ERROR,
+    //       dev: error,
+    //     }, null);
+    //     res.status(result.status).send(result);
+    //   });
   },
 
-  /**
-   * Delete all method
-   * Removes all the ingredients for a given drink
-   * @param {String} drinkId The id of the parent drink
-   */
-  deleteAll: (req, res) => {
-    const {
-      body: { drinkId },
-      decoded: { userId },
-    } = req;
-    let result = {};
-
-    Ingredient.deleteMany({ drinkId, userId })
-      .then((ingredient) => {
-        result = formatApiResponse(200, null, ingredient);
-        res.status(result.status).send(result);
-      })
-      .catch((error) => {
-        result = formatApiResponse(500, {
-          user: FAILED_DELETE_ERROR,
-          dev: error,
-        }, null);
-        res.status(result.status).send(result);
-      });
-  },
-
-  /**
-   * onPassthruError
-   * Helper function that sends an error
-   * @param {Object} res The response object
-   * @param {Object} error The error to be sent
-   */
-  onPassthruError: (res, error) => {
-    const result = formatApiResponse(500, error, null);
-    res.status(result.status).send(result);
-  },
+  getEvent: userId => Events.findOne({ userId }, {}, { sort: { createdAt: -1 } }),
 };
 
 module.exports = IngredientController;

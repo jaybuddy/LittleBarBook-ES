@@ -8,7 +8,7 @@ mongoose.connect(connUri, { useNewUrlParser: true });
 // CONNECTION EVENTS
 // When successfully connected
 mongoose.connection.on('connected', () => {
-  logger.info(`Mongoose default connection open to ${connUri}`);
+  logger.info('Mongoose default connection open');
 });
 
 // If the connection throws an error

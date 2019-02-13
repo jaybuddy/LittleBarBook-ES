@@ -28,27 +28,6 @@ securityDefinitions:
     in: header
 
 paths:
-  /drinks:
-    get:
-      tags:
-        - Drinks
-      summary: Retrieves a list of the logged in users drinks
-      security:
-        - bearer: []
-      responses:
-        200:
-          description: Successfully added user
-          schema:
-            $ref: "#/definitions/SuccessSchema"
-        401:
-          description: Authentication error
-          schema:
-            $ref: "#/definitions/AuthErrorSchema"
-        500:
-          description: Server error
-          schema: 
-            $ref: "#/definitions/ServerErrorSchema"
-  
   /drink: 
     post:
       tags:
@@ -70,31 +49,6 @@ paths:
       responses:
         200:
           description: Successfully added drink
-          schema:
-            $ref: "#/definitions/SuccessSchema"
-        401:
-          description: Authentication error
-          schema:
-            $ref: "#/definitions/AuthErrorSchema"
-        500:
-          description: Server error
-          schema:
-            $ref: "#/definitions/ServerErrorSchema"
-    get:
-      tags:
-        - Drinks
-      summary: Retrieves a list of the logged in users drinks
-      security:
-        - bearer: []
-      parameters:
-        - name: id
-          in: query
-          description: The Id if the drink.
-          required: true
-          type: string
-      responses:
-        200:
-          description: Successfully added user
           schema:
             $ref: "#/definitions/SuccessSchema"
         401:
@@ -331,7 +285,7 @@ paths:
           schema:
             $ref: "#/definitions/ServerErrorSchema"
   
-  /ingredients:
+  
     get:
       tags:
         - Ingredients
@@ -419,7 +373,7 @@ paths:
           description: Server error
           schema:
             $ref: "#/definitions/ServerErrorSchema"
-    get:
+    
       tags:
         - Ingredients
       summary: Retrieves a specific ingredient

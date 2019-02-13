@@ -1,17 +1,8 @@
-const mongoose = require('mongoose');
+const logger = require('../lib/logger').getLogger();
 const Drink = require('../models/drinks');
 const Events = require('../models/events');
 const { formatApiResponse } = require('../lib/formatters');
-const {
-  NOT_ADDED,
-  NOT_ADDED_DEV,
-  NOT_FOUND_ERROR,
-  NOT_FOUND_ERROR_DEV,
-  ID_NOT_PROVIDED,
-  FAILED_UPDATE_ERROR,
-  FAILED_DELETE_ERROR,
-  FAILED_TO_CONNECT,
-} = require('../constants/drinks');
+const { NOT_ADDED } = require('../constants/drinks');
 
 const DrinkController = {
   /**
@@ -24,91 +15,52 @@ const DrinkController = {
       decoded: { userId },
       body: { name, description },
     } = req;
+
     const drink = new Drink({
       name, userId, description,
     });
-    const result = {};
 
-    // pull the latest event object
-    const event = DrinkController.getEvent(userId)
-      .then((foundEvent) => {
-        console.log(foundEvent);
-      });
-
-    // modify it
-
-    // create new event
-    // Save the drink
-    // drink.save()
-    //   .then((savedDrink) => {
-    //     if (!savedDrink) {
-    //       result = formatApiResponse(500, {
-    //         user: NOT_ADDED,
-    //         dev: NOT_ADDED_DEV,
-    //       }, {});
-    //     } else {
-    //       result = formatApiResponse(201, null, savedDrink);
-    //     }
-    //     res.status(result.status).send(result);
-    //   })
-    //   .catch(error => DrinkController.onPassthruError(res, error));
-  },
-
-  /**
-   * Read Drink Method
-   * @param {String} slug The slug to lookup the drink.
-   * returns {object} API call results
-   */
-  read: (req, res) => {
-    const {
-      query: { id },
-      decoded: { userId },
-    } = req;
     let result = {};
 
-    if (id) {
-      Drink.findOne({ _id: id, userId })
-        .then((drink) => {
-          // If we get nothing back. it wasnt saved
-          if (!drink) {
-            result = formatApiResponse(500, {
-              user: NOT_FOUND_ERROR,
-              dev: NOT_FOUND_ERROR_DEV,
-            }, {});
-          } else {
-            result = formatApiResponse(200, null, drink);
-          }
-          res.status(result.status).send(result);
-        })
-        .catch(error => DrinkController.onPassthruError(res, error));
-    } else {
-      result = formatApiResponse(500, {
-        user: NOT_FOUND_ERROR,
-        dev: ID_NOT_PROVIDED,
-      }, null);
-      res.status(result.status).send(result);
-    }
-  },
+    // Validate the date being sent against the defined model
+    drink.validate((err) => {
+      if (err) {
+        result = formatApiResponse(500, err, {});
+        res.status(result.status).send(result);
+      }
+    });
 
-  /**
-   * ReadAll Drinks Method
-   * Grabs all of a users drink recipes
-   * @returns {Object} All the users saved drinks.
-   */
-  readAll: (req, res) => {
-    let result;
-    const { userId } = req.decoded;
-    Drink.find({ userId })
-      .then((drinks) => {
-        // If we get nothing back. they have no drinks
-        if (!drinks) {
-          result = formatApiResponse(200, null, {});
+    // Grab the latest event object
+    DrinkController.getEvent(userId)
+      .then((foundEvent) => {
+        // Check if we have a drinks array
+        if (foundEvent) {
+          const drinksArray = JSON.parse(foundEvent.state).Drinks || [];
+          const newState = {
+            Drinks: [drink, ...drinksArray],
+          };
+
+          // Create and Save the new event.
+          const newEvent = new Events({
+            userId,
+            description: `Added new drink: ${name}`,
+            state: JSON.stringify(newState),
+          });
+          newEvent.save()
+            .then((savedEvent) => {
+              if (savedEvent) {
+                result = formatApiResponse(201, null, savedEvent);
+                logger.trace(`New drink event was successfully added: ${newEvent}`);
+              } else {
+                result = formatApiResponse(500, NOT_ADDED, {});
+                logger.trace(`New drink event was not added: ${newEvent}`);
+              }
+              res.status(result.status).send(result);
+            });
         } else {
-          result = formatApiResponse(200, null, drinks);
+          logger.error('No events for this user. This is bad');
         }
-        res.status(result.status).send(result.data);
-      })
-      .catch(error => DrinkController.onPassthruError(res, error));
+      });
   },
 
   /**
@@ -119,23 +71,54 @@ const DrinkController = {
    */
   update: (req, res) => {
     const {
-      body: { id },
+      body: { id, name, description },
       decoded: { userId },
     } = req;
-    let result = {};
-    req.body.userId = userId;
 
-    Drink.findOneAndUpdate({ _id: id, userId }, req.body, { new: true })
-      .then((drink) => {
-        result = formatApiResponse(201, null, drink);
+    const drink = new Drink({
+      name, userId, description,
+    });
+
+    let result = {};
+
+    // Validate the date being sent against the defined model
+    drink.validate((err) => {
+      if (err) {
+        result = formatApiResponse(500, err, {});
         res.status(result.status).send(result);
-      })
-      .catch((error) => {
-        result = formatApiResponse(500, {
-          user: FAILED_UPDATE_ERROR,
-          dev: error,
-        }, null);
-        res.status(result.status).send(result);
+      }
+    });
+
+    DrinkController.getEvent(userId)
+      .then((foundEvent) => {
+        if (foundEvent) {
+          const drinksArray = JSON.parse(foundEvent.state).Drinks || [];
+          // Add the new drink, filter out the old.
+          const newState = {
+            Drinks: [drink, ...drinksArray]
+              .filter(remove => remove._id !== id),
+          };
+
+          // Create and Save the new event.
+          const newEvent = new Events({
+            userId,
+            description: `Removed drink: ${id}`,
+            state: JSON.stringify(newState),
+          });
+          newEvent.save()
+            .then((savedEvent) => {
+              if (savedEvent) {
+                result = formatApiResponse(201, null, savedEvent);
+                logger.trace(`Remove drink event was successfully added: ${newEvent}`);
+              } else {
+                result = formatApiResponse(500, NOT_ADDED, {});
+                logger.trace(`Remove drink event was not added: ${newEvent}`);
+              }
+              res.status(result.status).send(result);
+            });
+        } else {
+          logger.error('No events for this user. This is bad');
+        }
       });
   },
 
@@ -152,32 +135,38 @@ const DrinkController = {
     } = req;
     let result = {};
 
-    Drink.findOneAndDelete({ _id: id, userId }, { select: ['name', 'id'] })
-      .then((drink) => {
-        result = formatApiResponse(200, null, drink);
-        res.status(result.status).send(result);
-      })
-      .catch((error) => {
-        result = formatApiResponse(500, {
-          user: FAILED_DELETE_ERROR,
-          dev: error,
-        }, null);
-        res.status(result.status).send(result);
+    DrinkController.getEvent(userId)
+      .then((foundEvent) => {
+        if (foundEvent) {
+          const drinksArray = JSON.parse(foundEvent.state).Drinks || [];
+          const newState = {
+            Drinks: drinksArray.filter(drink => drink._id !== id),
+          };
+
+          // Create and Save the new event.
+          const newEvent = new Events({
+            userId,
+            description: `Removed drink: ${id}`,
+            state: JSON.stringify(newState),
+          });
+          newEvent.save()
+            .then((savedEvent) => {
+              if (savedEvent) {
+                result = formatApiResponse(201, null, savedEvent);
+                logger.trace(`Remove drink event was successfully added: ${newEvent}`);
+              } else {
+                result = formatApiResponse(500, NOT_ADDED, {});
+                logger.trace(`Remove drink event was not added: ${newEvent}`);
+              }
+              res.status(result.status).send(result);
+            });
+        } else {
+          logger.error('No events for this user. This is bad');
+        }
       });
   },
 
-  /**
-   * onPassthruError
-   * Helper function that sends an error
-   * @param {Object} res The response object
-   * @param {Object} error The error to be sent
-   */
-  onPassthruError: (res, error) => {
-    const result = formatApiResponse(500, error, null);
-    res.status(result.status).send(result);
-  },
-
-  getEvent: userId => Events.findOne({ userId }, 'state', { createdAt: -1 }),
+  getEvent: userId => Events.findOne({ userId }, {}, { sort: { createdAt: -1 } }),
 };
 
 module.exports = DrinkController;

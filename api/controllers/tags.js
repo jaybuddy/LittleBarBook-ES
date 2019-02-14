@@ -62,16 +62,7 @@ const TagController = {
             state: JSON.stringify(newState),
           });
           newEvent.save()
-            .then((savedEvent) => {
-              if (savedEvent) {
-                result = formatApiResponse(201, null, savedEvent);
-                logger.trace(`New tag event was successfully added: ${newEvent}`);
-              } else {
-                result = formatApiResponse(500, NOT_ADDED, {});
-                logger.trace(`New tag event was not added: ${newEvent}`);
-              }
-              res.status(result.status).send(result);
-            });
+            .then(savedEvent => TagController.postSave(newEvent, savedEvent, res, 'New'));
         } else {
           logger.error('No events for this user. This is bad');
         }
@@ -114,11 +105,10 @@ const TagController = {
             result = formatApiResponse(500, 'You do not have any drinks to add an ingredient to.', {});
             res.status(result.status).send(result);
           }
-
           // Add the new ingredient, filter out the old.
           const newState = {
             Drinks: drinksArray.map((drink) => {
-              if (drink.Ingredients && drink._id === drinkId) {
+              if (drink.Tags && drink._id === drinkId) {
                 return {
                   ...drink,
                   Tags: [
@@ -138,16 +128,7 @@ const TagController = {
             state: JSON.stringify(newState),
           });
           newEvent.save()
-            .then((savedEvent) => {
-              if (savedEvent) {
-                result = formatApiResponse(201, null, savedEvent);
-                logger.trace(`Update tag event was successfully added: ${newEvent}`);
-              } else {
-                result = formatApiResponse(500, NOT_ADDED, {});
-                logger.trace(`Update tag event was not added: ${newEvent}`);
-              }
-              res.status(result.status).send(result);
-            });
+            .then(savedEvent => TagController.postSave(newEvent, savedEvent, res, 'Update'));
         } else {
           logger.error('No events for this user. This is bad');
         }
@@ -165,8 +146,6 @@ const TagController = {
       body: { id },
       decoded: { userId },
     } = req;
-
-    let result;
 
     TagController.getEvent(userId)
       .then((foundEvent) => {
@@ -191,23 +170,40 @@ const TagController = {
             state: JSON.stringify(newState),
           });
           newEvent.save()
-            .then((savedEvent) => {
-              if (savedEvent) {
-                result = formatApiResponse(201, null, savedEvent);
-                logger.trace(`Remove tag event was successfully added: ${newEvent}`);
-              } else {
-                result = formatApiResponse(500, NOT_ADDED, {});
-                logger.trace(`Remove tag event was not added: ${newEvent}`);
-              }
-              res.status(result.status).send(result);
-            });
+            .then(savedEvent => TagController.postSave(newEvent, savedEvent, res, 'Remove'));
         } else {
           logger.error('No events for this user. This is bad');
         }
       });
   },
 
+  /**
+   * getEvent
+   * Grabs the latest event for a user
+   * @param {String} userId The user id
+   * @return {Object} The users latest event
+   */
   getEvent: userId => Events.findOne({ userId }, {}, { sort: { createdAt: -1 } }),
+
+  /**
+   * postSave
+   * Handles post-save actions common to all methods
+   * @param {Object} newEvent The new event saved
+   * @param {Object} savedEvent The entire event.
+   * @param {Object} res The response object
+   * @param {String} verb A describing work.
+   */
+  postSave: (newEvent, savedEvent, res, verb) => {
+    let result;
+    if (savedEvent) {
+      result = formatApiResponse(201, null, savedEvent);
+      logger.trace(`${verb} tag event was successfully added: ${newEvent}`);
+    } else {
+      result = formatApiResponse(500, NOT_ADDED, {});
+      logger.trace(`${verb} tag event was not added: ${newEvent}`);
+    }
+    res.status(result.status).send(result);
+  },
 };
 
 module.exports = TagController;

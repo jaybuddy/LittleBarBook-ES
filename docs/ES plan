@@ -19,9 +19,9 @@
     - Token
     - createdAt
 Actions
-- get latest state from events, clone, make mutation, validate, save
+X get latest state from events, clone, make mutation, validate, save
 
-When new user is creates. event is initialized with {}
+X When new user is creates. event is initialized with {}
 
 Models: 
   - DB
@@ -44,5 +44,4 @@ Where to start.
   X 8. Update swaggerui
 
 Next steps.
-possibly look at resolvePath
-convert Drink CRUD operations. 
+X convert Drink CRUD operations. 

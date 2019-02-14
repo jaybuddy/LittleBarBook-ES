@@ -72,7 +72,6 @@ const IngredientController = {
                 result = formatApiResponse(500, NOT_ADDED, {});
                 logger.trace(`New ingredient event was not added: ${newEvent}`);
               }
-              console.log(result);
               res.status(result.status).send(result);
             });
         } else {
@@ -89,23 +88,78 @@ const IngredientController = {
    */
   update: (req, res) => {
     const {
-      body: { id },
+      body: {
+        name,
+        drinkId,
+        ingredientId,
+        notes,
+      },
       decoded: { userId },
     } = req;
-    let result = {};
-    req.body.userId = userId;
 
-    Ingredient.findOneAndUpdate({ _id: id, userId }, req.body, { new: true })
-      .then((ingredient) => {
-        result = formatApiResponse(201, null, ingredient);
+    const newIngredient = new Ingredient({
+      name, userId, drinkId, notes,
+    });
+
+    let result;
+
+    // Validate the date being sent against the defined model
+    newIngredient.validate((err) => {
+      if (err) {
+        result = formatApiResponse(500, err, {});
         res.status(result.status).send(result);
-      })
-      .catch((error) => {
-        result = formatApiResponse(500, {
-          user: FAILED_UPDATE_ERROR,
-          dev: error,
-        }, null);
-        res.status(result.status).send(result);
+      }
+    });
+
+    // Grab the latest event object
+    IngredientController.getEvent(userId)
+      .then((foundEvent) => {
+        // Check if we have a drinks array
+        if (foundEvent) {
+          const drinksArray = JSON.parse(foundEvent.state).Drinks || [];
+
+          // If they dont have any drink, dont let them add an ingredient
+          if (drinksArray.length < 0) {
+            result = formatApiResponse(500, 'You do not have any drinks to add an ingredient to.', {});
+            res.status(result.status).send(result);
+          }
+
+          // Add the new ingredient, filter out the old.
+          const newState = {
+            Drinks: drinksArray.map((drink) => {
+              if (drink.Ingredients && drink._id === drinkId) {
+                return {
+                  ...drink,
+                  Ingredients: [
+                    newIngredient,
+                    ...drink.Ingredients.filter(ingredient => ingredient._id !== ingredientId),
+                  ],
+                };
+              }
+              return drink;
+            }),
+          };
+
+          // Create and Save the new event.
+          const newEvent = new Events({
+            userId,
+            description: `Added new ingredient: ${name}`,
+            state: JSON.stringify(newState),
+          });
+          newEvent.save()
+            .then((savedEvent) => {
+              if (savedEvent) {
+                result = formatApiResponse(201, null, savedEvent);
+                logger.trace(`Update ingredient event was successfully added: ${newEvent}`);
+              } else {
+                result = formatApiResponse(500, NOT_ADDED, {});
+                logger.trace(`Update ingredient event was not added: ${newEvent}`);
+              }
+              res.status(result.status).send(result);
+            });
+        } else {
+          logger.error('No events for this user. This is bad');
+        }
       });
   },
 
@@ -121,7 +175,7 @@ const IngredientController = {
       decoded: { userId },
     } = req;
 
-    let result = {};
+    let result;
 
     IngredientController.getEvent(userId)
       .then((foundEvent) => {
@@ -160,19 +214,6 @@ const IngredientController = {
           logger.error('No events for this user. This is bad');
         }
       });
-
-    // Ingredient.findOneAndDelete({ _id: id, userId }, { select: ['name', 'id'] })
-    //   .then((ingredient) => {
-    //     result = formatApiResponse(200, null, ingredient);
-    //     res.status(result.status).send(result);
-    //   })
-    //   .catch((error) => {
-    //     result = formatApiResponse(500, {
-    //       user: FAILED_DELETE_ERROR,
-    //       dev: error,
-    //     }, null);
-    //     res.status(result.status).send(result);
-    //   });
   },
 
   getEvent: userId => Events.findOne({ userId }, {}, { sort: { createdAt: -1 } }),

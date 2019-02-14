@@ -119,60 +119,6 @@ paths:
           schema:
             $ref: "#/definitions/ServerErrorSchema"
   
-  /tags: 
-    get:
-      tags:
-        - Tags
-      summary: Retrieves a list of the tags for a given drink
-      security:
-        - bearer: []
-      parameters:
-        - name: drinkId
-          in: query
-          description: The Id of the drink.
-          required: true
-          type: string
-      responses:
-        200:
-          description: Successfully fetch ingredients
-          schema:
-            $ref: "#/definitions/SuccessSchema"
-        401:
-          description: Authentication error
-          schema:
-            $ref: "#/definitions/AuthErrorSchema"
-        500:
-          description: Server error
-          schema:
-            $ref: "#/definitions/ServerErrorSchema"
-    
-            $ref: "#/definitions/SuccessSchema"
-    delete:
-      tags:
-        - Tags
-      summary: Deletes all tags from a drink
-      security:
-        - bearer: []
-      parameters:
-        - name: drinkId
-          in: formData
-          description: The Id if the drink whose tags we are to delete.
-          required: true
-          type: string
-      responses:
-        200:
-          description: Successfully deleted tags
-          schema:
-            $ref: "#/definitions/SuccessSchema"
-        401:
-          description: Authentication error
-          schema:
-            $ref: "#/definitions/AuthErrorSchema"
-        500:
-          description: Server error
-          schema:
-            $ref: "#/definitions/ServerErrorSchema"
-
   /tag: 
     post:
       tags:
@@ -204,31 +150,6 @@ paths:
           description: Server error
           schema:
             $ref: "#/definitions/ServerErrorSchema"
-    get:
-      tags:
-        - Tags
-      summary: Retrieves a single tag
-      security:
-        - bearer: []
-      parameters:
-        - name: id
-          in: query
-          description: The Id if the tag.
-          required: true
-          type: string
-      responses:
-        200:
-          description: Successfully retreived tag
-          schema:
-            $ref: "#/definitions/SuccessSchema"
-        401:
-          description: Authentication error
-          schema:
-            $ref: "#/definitions/AuthErrorSchema"
-        500:
-          description: Server error
-          schema:
-            $ref: "#/definitions/ServerErrorSchema"
     patch:
       tags:
         - Tags
@@ -239,6 +160,11 @@ paths:
         - name: id
           in: formData
           description: The Id if the tag.
+          required: true
+          type: string
+        - name: drinkId
+          in: formData
+          description: The Id if the drink.
           required: true
           type: string
         - name: name
@@ -285,58 +211,6 @@ paths:
           schema:
             $ref: "#/definitions/ServerErrorSchema"
   
-  
-    get:
-      tags:
-        - Ingredients
-      summary: Retrieves a list of the ingredients for a drink
-      security:
-        - bearer: []
-      parameters:
-        - name: id
-          in: query
-          description: The Id if the drink.
-          required: true
-          type: string
-      responses:
-        200:
-          description: Successfully retrieved ingredients
-          schema:
-            $ref: "#/definitions/SuccessSchema"
-        401:
-          description: Authentication error
-          schema:
-            $ref: "#/definitions/AuthErrorSchema"
-        500:
-          description: Server error
-          schema: 
-            $ref: "#/definitions/ServerErrorSchema"
-    delete:
-      tags:
-        - Ingredients
-      summary: Deletes all ingredient from a drink
-      security:
-        - bearer: []
-      parameters:
-        - name: id
-          in: formData
-          description: The Id if the drink whose ingredients we are to delete.
-          required: true
-          type: string
-      responses:
-        200:
-          description: Successfully deleted ingredients
-          schema:
-            $ref: "#/definitions/SuccessSchema"
-        401:
-          description: Authentication error
-          schema:
-            $ref: "#/definitions/AuthErrorSchema"
-        500:
-          description: Server error
-          schema:
-            $ref: "#/definitions/ServerErrorSchema"
-
   /ingredient: 
     post:
       tags:
@@ -405,7 +279,12 @@ paths:
       security:
         - bearer: []
       parameters:
-        - name: id
+        - name: drinkId
+          in: formData
+          description: The Id of the drink the ingredient belongs to.
+          required: true
+          type: string
+        - name: ingredientId
           in: formData
           description: The Id of the ingredient to be updated.
           required: true

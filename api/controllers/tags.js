@@ -1,14 +1,8 @@
+const logger = require('../lib/logger').getLogger();
+const Events = require('../models/events');
 const Tag = require('../models/tags');
 const { formatApiResponse } = require('../lib/formatters');
-const {
-  NOT_ADDED,
-  NOT_ADDED_DEV,
-  NOT_FOUND_ERROR,
-  NOT_FOUND_ERROR_DEV,
-  ID_NOT_PROVIDED,
-  FAILED_UPDATE_ERROR,
-  FAILED_DELETE_ERROR,
-} = require('../constants/tags');
+const { NOT_ADDED } = require('../constants/tags');
 
 const TagController = {
   /**
@@ -21,83 +15,67 @@ const TagController = {
       body: { name, drinkId },
       decoded: { userId },
     } = req;
+
     const tag = new Tag({ name, drinkId, userId });
-    let result = {};
-    // Save the tag
-    tag.save()
-      .then((savedTag) => {
-        if (!savedTag) {
-          result = formatApiResponse(500, {
-            user: NOT_ADDED,
-            dev: NOT_ADDED_DEV,
-          }, {});
-        } else {
-          result = formatApiResponse(201, null, savedTag);
-        }
-        res.status(result.status).send(result);
-      })
-      .catch(error => TagController.onPassthruError(res, error));
-  },
 
-  /**
-   * Read Tag Method
-   * @param {String} id The id to lookup the tag.
-   * returns {object} API call results
-   */
-  read: (req, res) => {
-    const {
-      query: { id },
-      decoded: { userId },
-    } = req;
-    let result = {};
-
-    if (id) {
-      Tag.findOne({ _id: id, userId })
-        .then((tag) => {
-          // If we get nothing back. it wasnt saved
-          if (!tag) {
-            result = formatApiResponse(500, {
-              user: NOT_FOUND_ERROR,
-              dev: NOT_FOUND_ERROR_DEV,
-            }, {});
-          } else {
-            result = formatApiResponse(200, null, tag);
-          }
-          res.status(result.status).send(result);
-        })
-        .catch(error => TagController.onPassthruError(res, error));
-    } else {
-      result = formatApiResponse(500, {
-        user: NOT_FOUND_ERROR,
-        dev: ID_NOT_PROVIDED,
-      }, null);
-      res.status(result.status).send(result);
-    }
-  },
-
-  /**
-   * ReadAll Tags Method
-   * Grabs all of a drinks tags
-   * @returns {Object} All the tags for a drink.
-   */
-  readAll: (req, res) => {
     let result;
-    const {
-      query: { drinkId },
-      decoded: { userId },
-    } = req;
 
-    Tag.find({ drinkId, userId })
-      .then((tags) => {
-        // If we get nothing back. they have no drinks
-        if (!tags) {
-          result = formatApiResponse(200, null, {});
+    // Validate the date being sent against the defined model
+    tag.validate((err) => {
+      if (err) {
+        result = formatApiResponse(500, err, {});
+        res.status(result.status).send(result);
+      }
+    });
+
+    // Grab the latest event object
+    TagController.getEvent(userId)
+      .then((foundEvent) => {
+        // Check if we have a drinks array
+        if (foundEvent) {
+          const drinksArray = JSON.parse(foundEvent.state).Drinks || [];
+
+          // If they dont have any drink, dont let them add an ingredient
+          if (drinksArray.length < 0) {
+            result = formatApiResponse(500, 'You do not have any drinks', {});
+            res.status(result.status).send(result);
+          }
+
+          const newState = {
+            Drinks: drinksArray.map((drink) => {
+              // Iterate through to find the right drink
+              if (drink._id === drinkId) {
+                const tags = drink.Tags || [];
+                return {
+                  ...drink,
+                  Tags: [tag, ...tags],
+                };
+              }
+              return drink;
+            }),
+          };
+
+          // Create and Save the new event.
+          const newEvent = new Events({
+            userId,
+            description: `Added new tag: ${name}`,
+            state: JSON.stringify(newState),
+          });
+          newEvent.save()
+            .then((savedEvent) => {
+              if (savedEvent) {
+                result = formatApiResponse(201, null, savedEvent);
+                logger.trace(`New tag event was successfully added: ${newEvent}`);
+              } else {
+                result = formatApiResponse(500, NOT_ADDED, {});
+                logger.trace(`New tag event was not added: ${newEvent}`);
+              }
+              res.status(result.status).send(result);
+            });
         } else {
-          result = formatApiResponse(200, null, tags);
+          logger.error('No events for this user. This is bad');
         }
-        res.status(result.status).send(result.data);
-      })
-      .catch(error => TagController.onPassthruError(res, error));
+      });
   },
 
   /**
@@ -108,23 +86,71 @@ const TagController = {
    */
   update: (req, res) => {
     const {
-      body: { id },
+      body: { id, name, drinkId },
       decoded: { userId },
     } = req;
-    let result = {};
-    req.body.userId = userId;
 
-    Tag.findOneAndUpdate({ _id: id, userId }, req.body, { new: true })
-      .then((tag) => {
-        result = formatApiResponse(201, null, tag);
+    const newTag = new Tag({ name, drinkId, userId });
+
+    let result;
+
+    // Validate the data being sent against the defined model
+    newTag.validate((err) => {
+      if (err) {
+        result = formatApiResponse(500, err, {});
         res.status(result.status).send(result);
-      })
-      .catch((error) => {
-        result = formatApiResponse(500, {
-          user: FAILED_UPDATE_ERROR,
-          dev: error,
-        }, null);
-        res.status(result.status).send(result);
+      }
+    });
+
+    // Grab the latest event object
+    TagController.getEvent(userId)
+      .then((foundEvent) => {
+        // Check if we have a drinks array
+        if (foundEvent) {
+          const drinksArray = JSON.parse(foundEvent.state).Drinks || [];
+
+          // If they dont have any drink, dont let them add an ingredient
+          if (drinksArray.length < 0) {
+            result = formatApiResponse(500, 'You do not have any drinks to add an ingredient to.', {});
+            res.status(result.status).send(result);
+          }
+
+          // Add the new ingredient, filter out the old.
+          const newState = {
+            Drinks: drinksArray.map((drink) => {
+              if (drink.Ingredients && drink._id === drinkId) {
+                return {
+                  ...drink,
+                  Tags: [
+                    newTag,
+                    ...drink.Tags.filter(tag => tag._id !== id),
+                  ],
+                };
+              }
+              return drink;
+            }),
+          };
+
+          // Create and Save the new event.
+          const newEvent = new Events({
+            userId,
+            description: `Added new tag: ${name}`,
+            state: JSON.stringify(newState),
+          });
+          newEvent.save()
+            .then((savedEvent) => {
+              if (savedEvent) {
+                result = formatApiResponse(201, null, savedEvent);
+                logger.trace(`Update tag event was successfully added: ${newEvent}`);
+              } else {
+                result = formatApiResponse(500, NOT_ADDED, {});
+                logger.trace(`Update tag event was not added: ${newEvent}`);
+              }
+              res.status(result.status).send(result);
+            });
+        } else {
+          logger.error('No events for this user. This is bad');
+        }
       });
   },
 
@@ -139,58 +165,49 @@ const TagController = {
       body: { id },
       decoded: { userId },
     } = req;
-    let result = {};
 
-    Tag.findOneAndDelete({ _id: id, userId }, { select: ['name', 'id'] })
-      .then((tag) => {
-        result = formatApiResponse(200, null, tag);
-        res.status(result.status).send(result);
-      })
-      .catch((error) => {
-        result = formatApiResponse(500, {
-          user: FAILED_DELETE_ERROR,
-          dev: error,
-        }, null);
-        res.status(result.status).send(result);
+    let result;
+
+    TagController.getEvent(userId)
+      .then((foundEvent) => {
+        if (foundEvent) {
+          const drinksArray = JSON.parse(foundEvent.state).Drinks || [];
+          const newState = {
+            Drinks: drinksArray.map((drink) => {
+              if (drink.Tags) {
+                return {
+                  ...drink,
+                  Tags: drink.Tags.filter(tag => tag._id !== id),
+                };
+              }
+              return drink;
+            }),
+          };
+
+          // Create and Save the new event.
+          const newEvent = new Events({
+            userId,
+            description: `Removed tag: ${id}`,
+            state: JSON.stringify(newState),
+          });
+          newEvent.save()
+            .then((savedEvent) => {
+              if (savedEvent) {
+                result = formatApiResponse(201, null, savedEvent);
+                logger.trace(`Remove tag event was successfully added: ${newEvent}`);
+              } else {
+                result = formatApiResponse(500, NOT_ADDED, {});
+                logger.trace(`Remove tag event was not added: ${newEvent}`);
+              }
+              res.status(result.status).send(result);
+            });
+        } else {
+          logger.error('No events for this user. This is bad');
+        }
       });
   },
 
-  /**
-   * Delete all method
-   * Removes all the tags for a given drink
-   * @param {String} drinkId The id of the parent drink
-   */
-  deleteAll: (req, res) => {
-    const {
-      body: { drinkId },
-      decoded: { userId },
-    } = req;
-    let result = {};
-
-    Tag.deleteMany({ drinkId, userId })
-      .then((tags) => {
-        result = formatApiResponse(200, null, tags);
-        res.status(result.status).send(result);
-      })
-      .catch((error) => {
-        result = formatApiResponse(500, {
-          user: FAILED_DELETE_ERROR,
-          dev: error,
-        }, null);
-        res.status(result.status).send(result);
-      });
-  },
-
-  /**
-   * onPassthruError
-   * Helper function that sends an error
-   * @param {Object} res The response object
-   * @param {Object} error The error to be sent
-   */
-  onPassthruError: (res, error) => {
-    const result = formatApiResponse(500, error, null);
-    res.status(result.status).send(result);
-  },
+  getEvent: userId => Events.findOne({ userId }, {}, { sort: { createdAt: -1 } }),
 };
 
 module.exports = TagController;

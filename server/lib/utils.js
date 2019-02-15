@@ -1,6 +1,6 @@
 const environment = process.env.NODE_ENV; // development
 const jwt = require('jsonwebtoken');
-const stage = require('../config')[environment];
+const stage = require('../../config')[environment];
 const Token = require('../models/tokens');
 
 module.exports = {

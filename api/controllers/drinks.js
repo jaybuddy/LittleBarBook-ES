@@ -47,16 +47,7 @@ const DrinkController = {
             state: JSON.stringify(newState),
           });
           newEvent.save()
-            .then((savedEvent) => {
-              if (savedEvent) {
-                result = formatApiResponse(201, null, savedEvent);
-                logger.trace(`New drink event was successfully added: ${newEvent}`);
-              } else {
-                result = formatApiResponse(500, NOT_ADDED, {});
-                logger.trace(`New drink event was not added: ${newEvent}`);
-              }
-              res.status(result.status).send(result);
-            });
+            .then(savedEvent => DrinkController.postSave(newEvent, savedEvent, res, 'New'));
         } else {
           logger.error('No events for this user. This is bad');
         }
@@ -106,16 +97,7 @@ const DrinkController = {
             state: JSON.stringify(newState),
           });
           newEvent.save()
-            .then((savedEvent) => {
-              if (savedEvent) {
-                result = formatApiResponse(201, null, savedEvent);
-                logger.trace(`Remove drink event was successfully added: ${newEvent}`);
-              } else {
-                result = formatApiResponse(500, NOT_ADDED, {});
-                logger.trace(`Remove drink event was not added: ${newEvent}`);
-              }
-              res.status(result.status).send(result);
-            });
+            .then(savedEvent => DrinkController.postSave(newEvent, savedEvent, res, 'Update'));
         } else {
           logger.error('No events for this user. This is bad');
         }
@@ -133,7 +115,6 @@ const DrinkController = {
       body: { id },
       decoded: { userId },
     } = req;
-    let result = {};
 
     DrinkController.getEvent(userId)
       .then((foundEvent) => {
@@ -150,23 +131,40 @@ const DrinkController = {
             state: JSON.stringify(newState),
           });
           newEvent.save()
-            .then((savedEvent) => {
-              if (savedEvent) {
-                result = formatApiResponse(201, null, savedEvent);
-                logger.trace(`Remove drink event was successfully added: ${newEvent}`);
-              } else {
-                result = formatApiResponse(500, NOT_ADDED, {});
-                logger.trace(`Remove drink event was not added: ${newEvent}`);
-              }
-              res.status(result.status).send(result);
-            });
+            .then(savedEvent => DrinkController.postSave(newEvent, savedEvent, res, 'Remove'));
         } else {
           logger.error('No events for this user. This is bad');
         }
       });
   },
 
+  /**
+   * getEvent
+   * Grabs the latest event for a user
+   * @param {String} userId The user id
+   * @return {Object} The users latest event
+   */
   getEvent: userId => Events.findOne({ userId }, {}, { sort: { createdAt: -1 } }),
+
+  /**
+   * postSave
+   * Handles post-save actions common to all methods
+   * @param {Object} newEvent The new event saved
+   * @param {Object} savedEvent The entire event.
+   * @param {Object} res The response object
+   * @param {String} verb A describing work.
+   */
+  postSave: (newEvent, savedEvent, res, verb) => {
+    let result;
+    if (savedEvent) {
+      result = formatApiResponse(201, null, savedEvent);
+      logger.trace(`${verb} tag event was successfully added: ${newEvent}`);
+    } else {
+      result = formatApiResponse(500, NOT_ADDED, {});
+      logger.trace(`${verb} tag event was not added: ${newEvent}`);
+    }
+    res.status(result.status).send(result);
+  },
 };
 
 module.exports = DrinkController;

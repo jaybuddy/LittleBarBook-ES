@@ -1,33 +1,28 @@
+import React from 'react';
 import { createStore, applyMiddleware } from 'redux';
 import { composeWithDevTools } from 'redux-devtools-extension';
 import thunkMiddleware from 'redux-thunk';
-import App, {Container} from "next/app";
-import {Provider} from "react-redux";
-import withRedux from "next-redux-wrapper";
-import reducer from '../reducer';
+import App, { Container } from 'next/app';
+import { Provider } from 'react-redux';
+import withRedux from 'next-redux-wrapper';
+import reducer from '../reducers';
 
-const exampleInitialState = {
-  count: 0,
-};
-
-const initStore = (initialState = exampleInitialState) => {
+const initStore = () => {
   return createStore(
     reducer,
-    initialState,
+    {},
     composeWithDevTools(applyMiddleware(thunkMiddleware)),
   );
 };
 
 class MyApp extends App {
-  static async getInitialProps({Component, ctx}) {
-      // // we can dispatch from here too
-      // ctx.store.dispatch({type: 'FOO', payload: 'foo'});
+  static async getInitialProps({ Component, ctx }) {
     const pageProps = Component.getInitialProps ? await Component.getInitialProps(ctx) : {};
-    return {pageProps};
+    return { pageProps };
   }
 
   render() {
-    const {Component, pageProps, store} = this.props;
+    const { Component, pageProps, store } = this.props;
     return (
       <Container>
         <Provider store={store}>

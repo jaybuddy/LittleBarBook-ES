@@ -3,23 +3,19 @@ const jwt = require('jsonwebtoken');
 const stage = require('../../config')[environment];
 const Token = require('../models/tokens');
 
-module.exports = {
+const cookieName = process.env.COOKIE_NAME;
 
-  /**
-   * removeBearer
-   * Utility method for removing bearer
-   */
-  removeBearer: authHeader => ((authHeader) ? authHeader.split(' ').pop() || '' : ''),
+module.exports = {
 
   /**
    * validateToken
    * Method validates an incoming JWT
    */
   validateToken: (req, res, next) => {
-    const { authorization: authHeader } = req.headers;
-    const token = module.exports.removeBearer(authHeader);
-
+    // const { authorization: authHeader } = req.headers;
+    const token = (req && req.cookies[cookieName]) ? req.cookies[cookieName].token : undefined;
     let result;
+
     if (token) {
       // Look if token is in expired tokens, if so, throw 401
       Token.findOne({ token })
@@ -47,10 +43,10 @@ module.exports = {
         });
     } else {
       result = {
-        error: 'Authentication error. No token provided.',
-        status: 401,
+        error: 'Not logged in',
+        status: 200,
       };
-      res.status(401).send(result);
+      res.status(200).send(result);
     }
   },
 };

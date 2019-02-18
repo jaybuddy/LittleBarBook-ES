@@ -3,9 +3,10 @@ import {
   FETCH_USER_SUCCESS,
   FETCH_USER_FAILURE,
 } from './actions';
+import adaptUser from '../../adapters/users';
 
 const initialState = {
-  user: {},
+  data: {},
   loading: false,
   error: null,
 };
@@ -27,7 +28,7 @@ export default function userReducer(state = initialState, action) {
       return {
         ...state,
         loading: false,
-        user: action.payload.user,
+        data: adaptUser(action.payload.user),
       };
 
     case FETCH_USER_FAILURE:
@@ -42,7 +43,7 @@ export default function userReducer(state = initialState, action) {
         ...state,
         loading: false,
         error: action.payload.error,
-        user: {},
+        data: {},
       };
 
     default:

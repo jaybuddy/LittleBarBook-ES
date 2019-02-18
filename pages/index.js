@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { Container, Row, Col } from 'react-bootstrap';
 import Link from 'next/link';
 import { connect } from 'react-redux';
@@ -7,7 +8,6 @@ import Navigation from '../components/navigation';
 import { fetchUser } from '../reducers/users/actions';
 
 class Index extends React.Component {
-
   componentDidMount() {
     this.props.dispatch(fetchUser());
   }
@@ -31,6 +31,10 @@ class Index extends React.Component {
     );
   }
 }
+
+Index.propTypes = {
+  dispatch: PropTypes.func,
+};
 
 const mapStateToProps = state => ({
   user: state.user,

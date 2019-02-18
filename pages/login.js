@@ -6,6 +6,7 @@ import { connect } from 'react-redux';
 import Head from '../components/head';
 import Navigation from '../components/navigation';
 import { fetchUser } from '../reducers/users/actions';
+import LoginBox from '../components/login';
 
 class Login extends React.Component {
   componentDidMount() {
@@ -25,6 +26,7 @@ class Login extends React.Component {
             <Col>
               <Navigation />
               <p>{message}</p>
+              <LoginBox />
             </Col>
           </Row>
         </Container>

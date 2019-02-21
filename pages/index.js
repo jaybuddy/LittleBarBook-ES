@@ -34,6 +34,7 @@ class Index extends React.Component {
 
 Index.propTypes = {
   dispatch: PropTypes.func,
+  user: PropTypes.object,
 };
 
 const mapStateToProps = state => ({

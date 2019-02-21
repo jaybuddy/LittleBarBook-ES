@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { Container, Row, Col } from 'react-bootstrap';
-import Link from 'next/link';
 import { connect } from 'react-redux';
 import Head from '../components/head';
 import Navigation from '../components/navigation';
@@ -14,18 +13,13 @@ class Login extends React.Component {
   }
 
   render() {
-    const message = !this.props.user.data.error
-      ? 'You are already logged in'
-      : 'Go ahead and login';
-
     return (
       <div>
         <Head />
         <Container fluid={true} style={{ paddingLeft: 0, paddingRight: 0 }}>
           <Row>
             <Col>
-              <Navigation />
-              <p>{message}</p>
+              <Navigation user={this.props.user}/>
               <LoginBox />
             </Col>
           </Row>

@@ -139,13 +139,14 @@ const UserController = {
                 });
 
                 result = formatApiResponse(201, null, user);
+                res.status(result.status).send(result);
               } else {
                 result = formatApiResponse(401, {
                   user: AUTHENTICATION_ERROR,
                   dev: AUTHENTICATION_ERROR,
                 }, null);
+                res.status(201).send(result);
               }
-              res.status(result.status).send(result);
             })
             .catch(error => UserController.onPassthruError(res, error));
         } else {

@@ -16,9 +16,9 @@ class Login extends React.Component {
     }).then(res => res.json())
       .then((data) => {
         if (data.status >= 401) {
-          toastr.error('Username or password is incorrect. Please try again.', { showCloseButton: false });
+          toastr.error('Uh Oh!', 'Username or password is incorrect. Please try again.', { showCloseButton: false });
         } else {
-          toastr.success('Welcome back!', { showCloseButton: false });
+          toastr.success('Success', 'Welcome back!', { showCloseButton: false });
           Router.push('/book');
         }
       });

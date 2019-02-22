@@ -3,16 +3,16 @@ import { Navbar, Nav } from 'react-bootstrap';
 import PropTypes from 'prop-types';
 import fetch from 'isomorphic-fetch';
 import Router from 'next/router';
-import toastr from 'react-redux-toastr';
+import { toastr } from 'react-redux-toastr';
 
 const onLogoutClick = () => {
   fetch('/api/v1/logout')
     .then(res => res.json())
     .then((data) => {
       if (data.status >= 401) {
-        toastr.error('Unable to log you out.', { showCloseButton: false });
+        toastr.error('Uh Oh!', 'Unable to log you out.', { showCloseButton: false });
       } else {
-        toastr.success('You have been logged out.', { showCloseButton: false });
+        toastr.success('Success!', 'You have been logged out.', { showCloseButton: false });
         Router.push('/');
       }
     });

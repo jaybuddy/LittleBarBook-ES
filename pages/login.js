@@ -31,7 +31,7 @@ class Login extends React.Component {
 
 Login.propTypes = {
   dispatch: PropTypes.func,
-  user: PropTypes.string,
+  user: PropTypes.object,
 };
 
 const mapStateToProps = state => ({

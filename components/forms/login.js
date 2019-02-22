@@ -18,7 +18,7 @@ const RenderField = ({
 );
 
 RenderField.propTypes = {
-  input: PropTypes.string,
+  input: PropTypes.object,
   label: PropTypes.string,
   className: PropTypes.string,
   type: PropTypes.string,

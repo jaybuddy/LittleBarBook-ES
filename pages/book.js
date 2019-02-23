@@ -5,10 +5,12 @@ import { connect } from 'react-redux';
 import Head from '../components/head';
 import Navigation from '../components/navigation';
 import { fetchDrinks } from '../reducers/drinks/actions';
+import { fetchUser } from '../reducers/users/actions';
 import BookContainer from '../components/containers/BookContainer';
 
 class Book extends React.Component {
   componentDidMount() {
+    this.props.dispatch(fetchUser());
     this.props.dispatch(fetchDrinks());
   }
 
@@ -26,7 +28,7 @@ class Book extends React.Component {
         <Container fluid={true} style={{ padding: 15 }}>
           <Row>
             <Col>
-              <BookContainer />
+              <BookContainer drinks={this.props.drinks.data.Drinks} />
             </Col>
           </Row>
         </Container>
@@ -38,11 +40,12 @@ class Book extends React.Component {
 Book.propTypes = {
   dispatch: PropTypes.func,
   user: PropTypes.object,
+  drinks: PropTypes.object,
 };
 
 const mapStateToProps = state => ({
   user: state.user,
-  book: state.drinks,
+  drinks: state.drinks,
 });
 
 export default connect(mapStateToProps)(Book);

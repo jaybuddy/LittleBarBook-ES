@@ -28,7 +28,7 @@ export default function drinksReducer(state = initialState, action) {
       return {
         ...state,
         loading: false,
-        data: adaptDrinks(action.payload.user),
+        data: adaptDrinks(action.payload.drinks.data),
       };
 
     case FETCH_DRINKS_FAILURE:

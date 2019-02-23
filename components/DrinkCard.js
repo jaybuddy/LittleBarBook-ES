@@ -14,6 +14,11 @@ const DrinkCard = (props) => {
     font-weight: 800;
   `;
 
+  const Description = styled.p`
+    font-size: 15px;
+    font-style: italic;
+  `;
+
   return (
     <Col
       xs={{ span: 12 }}
@@ -28,6 +33,9 @@ const DrinkCard = (props) => {
             <Heading>{props.drink.name}</Heading>
           </Card.Header>
           <Card.Body>
+            <Description>
+              {props.drink.description}
+            </Description>
             <IngredientList ingredients={props.drink.Ingredients} />
             <TagList tags={props.drink.Tags} />
           </Card.Body>

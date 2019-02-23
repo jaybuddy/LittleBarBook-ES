@@ -6,6 +6,11 @@ body, html {
   font-family: 'Helvetica-Neue', 'Helvetica', sans-serif;
 }
 
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 input {
   color: #495057;
   background-color: #fff;

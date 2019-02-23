@@ -27,9 +27,7 @@ class Book extends React.Component {
         </Container>
         <Container fluid={true} style={{ padding: 15 }}>
           <Row>
-            <Col>
-              <BookContainer drinks={this.props.drinks.data.Drinks} />
-            </Col>
+            <BookContainer drinks={this.props.drinks.data.Drinks} />
           </Row>
         </Container>
       </div>

@@ -20,6 +20,12 @@ class Login extends React.Component {
           <Row>
             <Col>
               <Navigation user={this.props.user}/>
+            </Col>
+          </Row>
+        </Container>
+        <Container fluid={true} style={{ padding: 15 }}>
+          <Row>
+            <Col>
               <LoginBox />
             </Col>
           </Row>

@@ -1,15 +1,15 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { Container, Row, Col } from 'react-bootstrap';
-import Link from 'next/link';
 import { connect } from 'react-redux';
 import Head from '../components/head';
 import Navigation from '../components/navigation';
-import { fetchUser } from '../reducers/users/actions';
+import { fetchDrinks } from '../reducers/drinks/actions';
+import BookContainer from '../components/containers/BookContainer';
 
 class Book extends React.Component {
   componentDidMount() {
-    this.props.dispatch(fetchUser());
+    this.props.dispatch(fetchDrinks());
   }
 
   render() {
@@ -20,10 +20,13 @@ class Book extends React.Component {
           <Row>
             <Col>
               <Navigation user={this.props.user} />
-              <Link href="/login">
-                <a>Application Page</a>
-              </Link>
-              <p>Hello Next.js</p>
+            </Col>
+          </Row>
+        </Container>
+        <Container fluid={true} style={{ padding: 15 }}>
+          <Row>
+            <Col>
+              <BookContainer />
             </Col>
           </Row>
         </Container>
@@ -39,6 +42,7 @@ Book.propTypes = {
 
 const mapStateToProps = state => ({
   user: state.user,
+  book: state.drinks,
 });
 
 export default connect(mapStateToProps)(Book);

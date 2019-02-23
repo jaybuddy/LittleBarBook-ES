@@ -42,7 +42,11 @@ const Navigation = props => (
         <Nav className="mr-auto">
           <Nav.Link href="/about">About</Nav.Link>
         </Nav>
-        {props.user && props.user.data.email ? <LogOutMenu user={props.user.data} /> : <LogInMenu />}
+        {
+          props.user && props.user.data.email
+            ? <LogOutMenu user={props.user.data} />
+            : <LogInMenu />
+        }
       </Navbar.Collapse>
     </Navbar>
   </div>

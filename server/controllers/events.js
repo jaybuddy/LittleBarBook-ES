@@ -51,7 +51,7 @@ const EventController = {
     let result = {};
 
     if (userId) {
-      Events.findOne({ userId }, 'state', { createdAt: -1 })
+      Events.findOne({ userId }, {}, { sort: { createdAt: -1 } })
         .then((event) => {
           // If we get nothing back. it wasnt saved
           if (!event) {

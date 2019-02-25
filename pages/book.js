@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Container, Row, Col } from 'react-bootstrap';
 import { connect } from 'react-redux';
+import Router from 'next/router';
 import Head from '../components/head';
 import Navigation from '../components/navigation';
 import { fetchDrinks } from '../reducers/drinks/actions';
@@ -12,6 +13,11 @@ class Book extends React.Component {
   componentDidMount() {
     this.props.dispatch(fetchUser());
     this.props.dispatch(fetchDrinks());
+
+    // If youre not logged in, bounce.
+    // if (!this.props.user.data.) {
+    //   Router.push('/login');
+    // }
   }
 
   render() {

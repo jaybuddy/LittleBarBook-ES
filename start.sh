@@ -10,7 +10,7 @@ docker stop ${CONTAINER_NAME}
 docker rm ${CONTAINER_NAME}
 
 # Build the container
-docker build -t ${IMAGE_NAME}
+docker build -t ${IMAGE_NAME} .
 
 # Start the container
 docker run \

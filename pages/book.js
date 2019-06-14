@@ -8,16 +8,25 @@ import Navigation from '../components/navigation';
 import { fetchDrinks } from '../reducers/drinks/actions';
 import { fetchUser } from '../reducers/users/actions';
 import BookContainer from '../components/containers/BookContainer';
+import isLoggedIn from '../server/lib/utils';
 
 class Book extends React.Component {
+  async getInitialProps({ req, res }) {
+    if (res) {
+      if (!isLoggedIn(req)) {
+        return res.redirect(302, '/login');
+      }
+    } else {
+      if (this.props.user.error) {
+        return Router.push('/login');
+      } 
+    }
+    return res;
+  }
+
   componentDidMount() {
     this.props.dispatch(fetchUser());
     this.props.dispatch(fetchDrinks());
-
-    // If youre not logged in, bounce.
-    // if (!this.props.user.data.) {
-    //   Router.push('/login');
-    // }
   }
 
   render() {
